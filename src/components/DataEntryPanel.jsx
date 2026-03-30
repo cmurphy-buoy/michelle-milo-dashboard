@@ -1,12 +1,16 @@
 import { useState, useRef } from 'react'
 import { getData, saveData, KEYS } from '../utils/storage'
 
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 const PLATFORMS = ['instagram', 'tiktok', 'facebook']
 const CATEGORIES = ['tricks', 'day-in-life', 'funny', 'grooming', 'travel']
 
 function ReelForm({ onDone }) {
   const [form, setForm] = useState({
-    platform: 'instagram', date: new Date().toISOString().slice(0, 10), title: '',
+    platform: 'instagram', date: localDateStr(), title: '',
     views: '', likes: '', comments: '', shares: '', saves: '', reach: '',
     watchTimePct: '', nonFollowerReachPct: '', category: 'funny', audioType: 'original',
   })
@@ -72,7 +76,7 @@ function ReelForm({ onDone }) {
 }
 
 function FollowerForm({ onDone }) {
-  const [form, setForm] = useState({ platform: 'instagram', date: new Date().toISOString().slice(0, 10), count: '' })
+  const [form, setForm] = useState({ platform: 'instagram', date: localDateStr(), count: '' })
 
   const handleSubmit = () => {
     if (!form.count) return
@@ -128,7 +132,7 @@ function CsvImport({ onDone }) {
     const reader = new FileReader()
     reader.onload = (ev) => {
       const text = ev.target.result
-      const lines = text.split('\n').map((l) => l.split(',').map((c) => c.trim().replace(/^"|"$/g, '')))
+      const lines = text.replace(/\r/g, '').split('\n').map((l) => l.split(',').map((c) => c.trim().replace(/^"|"$/g, '')))
       if (lines.length < 2) return
       const hdrs = lines[0]
       const dataRows = lines.slice(1).filter((r) => r.length === hdrs.length && r.some((c) => c))
@@ -147,6 +151,11 @@ function CsvImport({ onDone }) {
   }
 
   const handleImport = () => {
+    const requiredMapped = ['title', 'views', 'date'].filter((col) => mapping[col] === undefined || mapping[col] === '')
+    if (requiredMapped.length > 0) {
+      onDone(`Please map required columns: ${requiredMapped.join(', ')}`)
+      return
+    }
     let success = 0, errors = 0
     const existing = getData(KEYS.REELS + 'all') || []
     rows.forEach((row) => {
@@ -154,7 +163,7 @@ function CsvImport({ onDone }) {
         const reel = {
           id: `reel-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           platform: (row[mapping.platform] || 'instagram').toLowerCase(),
-          date: row[mapping.date] || new Date().toISOString().slice(0, 10),
+          date: row[mapping.date] || localDateStr(),
           title: row[mapping.title] || 'Imported Reel',
           views: Number(row[mapping.views]) || 0,
           likes: Number(row[mapping.likes]) || 0,

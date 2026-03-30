@@ -1,6 +1,10 @@
 import { useState, useMemo } from 'react'
 import { getData, saveData, KEYS } from '../utils/storage'
 
+function localDateStr(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 const PLATFORMS = ['instagram', 'tiktok', 'facebook']
 const CATEGORIES = ['tricks', 'day-in-life', 'funny', 'grooming', 'travel']
 const STATUSES = ['idea', 'filming', 'editing', 'ready', 'posted']
@@ -76,7 +80,7 @@ function CalendarGrid({ posts, currentDate, onSelectPost }) {
 
 function PostModal({ post, onSave, onClose }) {
   const [form, setForm] = useState(
-    post || { id: '', date: new Date().toISOString().slice(0, 10), time: '12:00', platforms: ['instagram'], category: 'funny', caption: '', hashtags: '', audioRef: '', status: 'idea' }
+    post || { id: '', date: localDateStr(), time: '12:00', platforms: ['instagram'], category: 'funny', caption: '', hashtags: '', audioRef: '', status: 'idea' }
   )
 
   const handleSave = () => {
@@ -226,7 +230,7 @@ function Sidebar({ onMoveToCalendar }) {
   // Ideas
   const addIdea = () => {
     if (!newIdea.title) return
-    const idea = { ...newIdea, id: `idea-${Date.now()}`, notes: '', createdAt: new Date().toISOString().slice(0, 10) }
+    const idea = { ...newIdea, id: `idea-${Date.now()}`, notes: '', createdAt: localDateStr() }
     const updated = [...ideas, idea]
     setIdeas(updated)
     saveData(KEYS.IDEAS + 'bank', updated)
@@ -242,7 +246,7 @@ function Sidebar({ onMoveToCalendar }) {
   // Trends
   const addTrend = () => {
     if (!newTrend.name) return
-    const trend = { ...newTrend, id: `trend-${Date.now()}`, used: false, linkedPostId: null, addedAt: new Date().toISOString().slice(0, 10) }
+    const trend = { ...newTrend, id: `trend-${Date.now()}`, used: false, linkedPostId: null, addedAt: localDateStr() }
     const updated = [...trends, trend]
     setTrends(updated)
     saveData(KEYS.TRENDS + 'log', updated)
@@ -315,7 +319,7 @@ function Sidebar({ onMoveToCalendar }) {
             </select>
             <button onClick={addTrend} className="px-3 py-1.5 bg-orange-500 text-white rounded text-xs font-medium">+</button>
           </div>
-          {trends.sort((a, b) => { const order = { '24h': 0, '3d': 1, '1w': 2 }; return order[a.urgency] - order[b.urgency] }).map((t) => (
+          {[...trends].sort((a, b) => { const order = { '24h': 0, '3d': 1, '1w': 2 }; return order[a.urgency] - order[b.urgency] }).map((t) => (
             <div key={t.id} className="flex items-center gap-2 py-1.5 border-b border-gray-50 text-xs">
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${URGENCY_COLORS[t.urgency]}`}>{t.urgency}</span>
               <span className="text-gray-700 truncate flex-1">{t.name}</span>
@@ -426,7 +430,7 @@ export default function Calendar() {
   }
 
   const handleMoveToCalendar = (idea) => {
-    setModalPost({ id: '', date: new Date().toISOString().slice(0, 10), time: '12:00', platforms: [idea.platform || 'instagram'], category: idea.category || 'funny', caption: idea.title, hashtags: '', audioRef: '', status: 'idea' })
+    setModalPost({ id: '', date: localDateStr(), time: '12:00', platforms: [idea.platform || 'instagram'], category: idea.category || 'funny', caption: idea.title, hashtags: '', audioRef: '', status: 'idea' })
     setShowModal(true)
   }
 
@@ -471,11 +475,13 @@ export default function Calendar() {
       {/* Week at a glance bar */}
       <div className="bg-white rounded-xl p-4 shadow-sm flex items-center justify-between">
         <div className="text-sm text-gray-500">
-          <span className="font-semibold text-gray-700">{posted}</span> posted · <span className="font-semibold text-gray-700">{planned}</span> planned
+          <span className="font-semibold text-gray-700">{posted}</span> posted · <span className="font-semibold text-gray-700">{planned}</span> planned (this week)
         </div>
         <div className="flex items-center gap-4">
           {PLATFORMS.map((p) => {
-            const count = filteredPosts.filter((post) => post.status === 'posted' && (post.platforms || []).includes(p)).length
+            const now = new Date()
+            const weekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7)
+            const count = filteredPosts.filter((post) => post.status === 'posted' && (post.platforms || []).includes(p) && new Date(post.date) >= weekAgo).length
             return (
               <span key={p} className="text-xs text-gray-500">
                 <span className="capitalize font-medium">{p}</span>: {count}/{weekTarget[p]}
