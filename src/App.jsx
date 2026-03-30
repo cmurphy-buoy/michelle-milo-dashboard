@@ -8,6 +8,7 @@ import Facebook from './pages/Facebook'
 import Competitors from './pages/Competitors'
 import Revenue from './pages/Revenue'
 import Calendar from './pages/Calendar'
+import Settings from './pages/Settings'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: '📊' },
@@ -17,6 +18,7 @@ const TABS = [
   { id: 'competitors', label: 'Competitors', icon: '🏆' },
   { id: 'revenue', label: 'Revenue', icon: '💰' },
   { id: 'calendar', label: 'Calendar', icon: '📅' },
+  { id: 'settings', label: 'Settings', icon: '⚙️' },
 ]
 
 const DATE_RANGES = [
@@ -37,8 +39,26 @@ function App() {
     setRefreshKey((k) => k + 1)
   }, [])
 
+  const [toast, setToast] = useState('')
+
   useEffect(() => {
     setHasData(getAllKeys().length > 0)
+
+    // Handle OAuth redirect
+    const params = new URLSearchParams(window.location.search)
+    const connected = params.get('connected')
+    const error = params.get('error')
+    if (connected) {
+      setToast(`${connected === 'meta' ? 'Instagram & Facebook' : 'TikTok'} connected successfully!`)
+      setActiveTab('settings')
+      window.history.replaceState({}, '', window.location.pathname)
+      setTimeout(() => setToast(''), 4000)
+    } else if (error) {
+      setToast(`Connection failed: ${error}`)
+      setActiveTab('settings')
+      window.history.replaceState({}, '', window.location.pathname)
+      setTimeout(() => setToast(''), 4000)
+    }
   }, [])
 
   const handleLoadDemo = () => {
@@ -74,6 +94,7 @@ function App() {
       case 'competitors': return <Competitors {...props} />
       case 'revenue': return <Revenue {...props} />
       case 'calendar': return <Calendar {...props} />
+      case 'settings': return <Settings />
       default: return <Overview {...props} />
     }
   }
@@ -149,6 +170,13 @@ function App() {
       {/* Data Entry Panel */}
       {showDataEntry && (
         <DataEntryPanel onClose={() => setShowDataEntry(false)} onDataChange={handleDataChange} />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50 animate-fade-in ${toast.includes('failed') || toast.includes('error') ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+          {toast}
+        </div>
       )}
     </div>
   )
