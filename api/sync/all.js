@@ -1,8 +1,18 @@
-import { getTokens, setSyncStatus } from '../_lib/redis.js'
+import { getTokens, setSyncStatus, getCachedSync, getSyncStatus } from '../_lib/redis.js'
 import { getIGUser, getMedia, getMediaInsights, getFollowerInsights, getPageFollowers } from '../_lib/meta-client.js'
 import { transformIGMedia, transformTikTokVideo, mergeReels, mergeFollowers } from '../_lib/transforms.js'
 
 export default async function handler(req, res) {
+  // GET /api/sync/all?action=cached — return cron-cached data
+  if (req.method === 'GET' && req.query.action === 'cached') {
+    try {
+      const cached = await getCachedSync()
+      const status = await getSyncStatus()
+      if (!cached) return res.status(200).json({ available: false, status })
+      return res.status(200).json({ available: true, ...cached, status })
+    } catch { return res.status(500).json({ error: 'Failed to fetch cached data' }) }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   let { reels: existingReels = [], followers: existingFollowers = [] } = req.body || {}

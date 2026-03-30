@@ -2,16 +2,16 @@
 // Sync utility — frontend API helpers for platform OAuth & data sync
 // ---------------------------------------------------------------------------
 
-const API_BASE = '/api'
+// All auth routes consolidated into /api/auth?action=X
+// Sync routes: /api/sync/all (POST), /api/sync/all?action=cached (GET)
 
 /**
  * Check connection status for all platforms.
- * GET /api/auth/status
  * Returns { meta: { connected, username, expiresAt }, tiktok: {...}, facebook: {...} }
  */
 export async function checkConnectionStatus() {
   try {
-    const res = await fetch(`${API_BASE}/auth/status`)
+    const res = await fetch('/api/auth?action=status')
     if (!res.ok) return null
     return await res.json()
   } catch (err) {
@@ -22,18 +22,15 @@ export async function checkConnectionStatus() {
 
 /**
  * Initiate OAuth flow for a platform.
- * GET /api/auth/{platform}/init → { authUrl }
- * Redirects the browser to the returned authUrl.
+ * Redirects the browser to the platform's OAuth page.
  * @param {'meta' | 'tiktok'} platform
  */
 export async function initiateOAuth(platform) {
   try {
-    const res = await fetch(`${API_BASE}/auth/${platform}/init`)
+    const res = await fetch(`/api/auth?action=${platform}-init`)
     if (!res.ok) return null
     const data = await res.json()
-    if (data && data.authUrl) {
-      window.location.href = data.authUrl
-    }
+    if (data?.authUrl) window.location.href = data.authUrl
     return data
   } catch (err) {
     console.error(`Failed to initiate OAuth for ${platform}:`, err)
@@ -43,12 +40,11 @@ export async function initiateOAuth(platform) {
 
 /**
  * Disconnect a platform.
- * POST /api/auth/disconnect with body { platform }
- * @param {'meta' | 'tiktok' | 'facebook'} platform
+ * @param {'meta' | 'tiktok'} platform
  */
 export async function disconnectPlatform(platform) {
   try {
-    const res = await fetch(`${API_BASE}/auth/disconnect`, {
+    const res = await fetch('/api/auth?action=disconnect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ platform }),
@@ -62,14 +58,13 @@ export async function disconnectPlatform(platform) {
 }
 
 /**
- * Sync all platforms — sends existing local data and receives merged/updated data.
- * POST /api/sync/all with body { reels, followers }
- * Returns { followers, reels, syncedAt }
+ * Sync all platforms — sends existing data, receives merged/updated data.
  * @param {{ reels: Array, followers: Array }} existingData
+ * @returns {{ followers, reels, syncedAt, stats, errors }}
  */
 export async function syncAll(existingData) {
   try {
-    const res = await fetch(`${API_BASE}/sync/all`, {
+    const res = await fetch('/api/sync/all', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(existingData),
@@ -77,21 +72,20 @@ export async function syncAll(existingData) {
     if (!res.ok) return null
     return await res.json()
   } catch (err) {
-    console.error('Failed to sync all platforms:', err)
+    console.error('Failed to sync:', err)
     return null
   }
 }
 
 /**
- * Fetch cached sync data (populated by server-side cron).
- * GET /api/sync/cached → cached data object or null
+ * Fetch cached sync data from the daily cron.
+ * @returns {{ available, reels, followers, cachedAt, status } | null}
  */
 export async function fetchCachedSync() {
   try {
-    const res = await fetch(`${API_BASE}/sync/cached`)
+    const res = await fetch('/api/sync/all?action=cached')
     if (!res.ok) return null
-    const data = await res.json()
-    return data || null
+    return await res.json()
   } catch (err) {
     console.error('Failed to fetch cached sync:', err)
     return null
