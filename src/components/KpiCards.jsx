@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import { getData, KEYS } from '../utils/storage'
 
 function TrendArrow({ value }) {
   if (value > 0) return <span className="text-green-500 text-sm font-semibold">▲ {value.toFixed(1)}%</span>

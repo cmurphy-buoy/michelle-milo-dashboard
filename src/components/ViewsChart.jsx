@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from 'recharts'
 
 const PLATFORM_COLORS = { instagram: '#C13584', tiktok: '#00C9B1', facebook: '#1877F2' }
 
@@ -29,7 +29,7 @@ export default function ViewsChart({ reels }) {
           <ReferenceLine y={avgViews} stroke="#F97316" strokeDasharray="4 4" label={{ value: `Avg: ${(avgViews / 1000).toFixed(0)}K`, position: 'right', fontSize: 11 }} />
           <Bar dataKey="views" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, i) => (
-              <rect key={i} fill={entry.fill} />
+              <Cell key={i} fill={entry.fill} />
             ))}
           </Bar>
         </BarChart>

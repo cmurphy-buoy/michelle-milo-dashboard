@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 const PLATFORM_BADGE = {
   instagram: { bg: 'bg-purple-100 text-purple-700', label: 'IG' },
@@ -17,14 +17,26 @@ export default function ContentTable({ reels }) {
     [reels]
   )
 
+  const getEngRate = (r) => {
+    const eng = r.likes + r.comments + r.shares + r.saves
+    return r.reach ? (eng / r.reach) * 100 : 0
+  }
+
   const sorted = useMemo(() => {
     const s = [...reels].sort((a, b) => {
-      let va = a[sortCol], vb = b[sortCol]
+      let va, vb
+      if (sortCol === 'engagement') {
+        va = getEngRate(a); vb = getEngRate(b)
+      } else {
+        va = a[sortCol]; vb = b[sortCol]
+      }
       if (typeof va === 'string') return sortAsc ? va.localeCompare(vb) : vb.localeCompare(va)
-      return sortAsc ? va - vb : vb - va
+      return sortAsc ? (va || 0) - (vb || 0) : (vb || 0) - (va || 0)
     })
     return s
   }, [reels, sortCol, sortAsc])
+
+  useEffect(() => setPage(0), [reels])
 
   const paged = sorted.slice(page * perPage, (page + 1) * perPage)
   const totalPages = Math.ceil(sorted.length / perPage)
@@ -71,7 +83,7 @@ export default function ContentTable({ reels }) {
               {cols.map((c) => (
                 <th
                   key={c.key}
-                  onClick={() => toggleSort(c.key === 'engagement' ? 'views' : c.key)}
+                  onClick={() => toggleSort(c.key)}
                   className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700"
                 >
                   {c.label} {sortCol === c.key ? (sortAsc ? '↑' : '↓') : ''}

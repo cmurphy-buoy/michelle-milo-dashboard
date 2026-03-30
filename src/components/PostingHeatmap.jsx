@@ -16,9 +16,14 @@ export default function PostingHeatmap({ reels }) {
       }
     }
 
+    const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1
+    const prevMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
+
     reels.forEach((r) => {
       const rd = new Date(r.date)
-      if (rd.getMonth() !== now.getMonth() && rd.getMonth() !== now.getMonth() - 1) return
+      const isCurrentMonth = rd.getMonth() === now.getMonth() && rd.getFullYear() === now.getFullYear()
+      const isPrevMonth = rd.getMonth() === prevMonth && rd.getFullYear() === prevMonthYear
+      if (!isCurrentMonth && !isPrevMonth) return
       const dayOfMonth = rd.getDate()
       const weekIdx = Math.min(3, Math.floor((dayOfMonth - 1) / 7))
       const dayIdx = (rd.getDay() + 6) % 7 // Monday=0

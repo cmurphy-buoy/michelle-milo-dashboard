@@ -8,7 +8,7 @@ export default function EngagementChart({ reels }) {
       const d = new Date(r.date)
       const weekStart = new Date(d)
       weekStart.setDate(d.getDate() - d.getDay())
-      const key = weekStart.toISOString().slice(5, 10)
+      const key = weekStart.toISOString().slice(0, 10)
       if (!weeks[key]) weeks[key] = { week: key, Shares: 0, Saves: 0, Comments: 0, Likes: 0 }
       weeks[key].Shares += r.shares
       weeks[key].Saves += r.saves

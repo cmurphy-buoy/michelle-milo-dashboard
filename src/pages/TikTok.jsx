@@ -17,20 +17,21 @@ const PIE_COLORS = [TEAL, TEAL_LIGHT, '#065f56', '#0d9488', '#5eead4']
 // Helpers
 // ---------------------------------------------------------------------------
 function TrendArrow({ value }) {
-  if (value > 0) return <span className="text-green-500 text-sm font-semibold">&#9650; {value.toFixed(1)}%</span>
-  if (value < 0) return <span className="text-red-500 text-sm font-semibold">&#9660; {Math.abs(value).toFixed(1)}%</span>
-  return <span className="text-gray-400 text-sm">&mdash; 0%</span>
+  if (value > 0) return <span className="text-green-500 text-sm font-semibold">{'\u25B2'} {value.toFixed(1)}%</span>
+  if (value < 0) return <span className="text-red-500 text-sm font-semibold">{'\u25BC'} {Math.abs(value).toFixed(1)}%</span>
+  return <span className="text-gray-400 text-sm">{'\u2014'} 0%</span>
 }
 
 function fmt(n) {
+  if (n == null) return '--'
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
   if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
   return n.toLocaleString()
 }
 
 function SortIcon({ active, dir }) {
-  if (!active) return <span className="text-gray-300 ml-1">&#8597;</span>
-  return <span className="text-teal-400 ml-1">{dir === 'asc' ? '&#9650;' : '&#9660;'}</span>
+  if (!active) return <span className="text-gray-300 ml-1">{'\u2195'}</span>
+  return <span className="text-teal-400 ml-1">{dir === 'asc' ? '\u25B2' : '\u25BC'}</span>
 }
 
 // ---------------------------------------------------------------------------
@@ -199,13 +200,14 @@ export default function TikTok({ dateRange }) {
   // Trending sound performance
   // -------------------------------------------------------------------------
   const soundPerformance = useMemo(() => {
-    const { trends, allReels } = data
-    if (!trends.length) return []
+    const { trends, tiktokReels } = data
+    const ttTrends = trends.filter((t) => t.platform === 'tiktok')
+    if (!ttTrends.length) return []
 
     const reelMap = {}
-    allReels.forEach((r) => { reelMap[r.id] = r })
+    tiktokReels.forEach((r) => { reelMap[r.id] = r })
 
-    return trends.map((t) => {
+    return ttTrends.map((t) => {
       const linkedReel = t.linkedPostId ? reelMap[t.linkedPostId] : null
       return {
         name: t.name,

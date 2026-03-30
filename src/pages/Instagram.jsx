@@ -273,7 +273,7 @@ export default function Instagram({ dateRange }) {
 
   // Find follower count ~7 days ago for WoW
   const weekAgoDate = weekAgo()
-  const followerWeekAgo = followerData.find((s) => s.date <= weekAgoDate)
+  const followerWeekAgo = [...followerData].reverse().find((s) => s.date <= weekAgoDate)
   const prevFollowers = followerWeekAgo ? followerWeekAgo.instagram : latestFollowers
   const followerTrend = prevFollowers > 0 ? ((latestFollowers - prevFollowers) / prevFollowers) * 100 : 0
 

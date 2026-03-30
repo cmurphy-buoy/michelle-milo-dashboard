@@ -67,20 +67,31 @@ function App() {
   }
 
   const renderPage = () => {
+    // Settings is always accessible, even without data (needed for initial account setup)
+    if (activeTab === 'settings') return <Settings />
+
     if (!hasData) {
       return (
         <div className="flex flex-col items-center justify-center py-24 space-y-4">
           <div className="text-6xl">🐾</div>
           <h2 className="text-2xl font-bold text-gray-800">Welcome to Michelle & Milo Dashboard</h2>
           <p className="text-gray-500 max-w-md text-center">
-            No data yet. Load demo data to explore the dashboard, or add your own metrics using the data entry form.
+            No data yet. Load demo data to explore the dashboard, or connect your real accounts via Settings.
           </p>
+          <div className="flex gap-3">
           <button
             onClick={handleLoadDemo}
             className="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-semibold shadow-md hover:shadow-lg"
           >
             Load Demo Data
           </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className="px-6 py-3 bg-white text-orange-600 border-2 border-orange-300 rounded-xl hover:bg-orange-50 transition-colors font-semibold shadow-md"
+          >
+            Connect Accounts
+          </button>
+          </div>
         </div>
       )
     }
@@ -127,12 +138,12 @@ function App() {
         </div>
       </header>
 
-      {/* Tab Navigation */}
-      {hasData && (
+      {/* Tab Navigation — always show Settings tab, others only when data exists */}
+      {(hasData || activeTab === 'settings') && (
         <nav className="bg-white border-b border-orange-100 sticky top-[73px] z-40">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex overflow-x-auto scrollbar-hide -mb-px">
-              {TABS.map((tab) => (
+              {TABS.filter((tab) => hasData || tab.id === 'settings').map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}

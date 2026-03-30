@@ -345,7 +345,7 @@ function generateRevenueData(rng) {
       date: dateStr(25),
       platform: 'instagram',
       amount: 850,
-      type: 'sponsored-reel',
+      type: 'Sponsorship',
       reelId: 'reel-3',
     },
     {
@@ -354,7 +354,7 @@ function generateRevenueData(rng) {
       date: dateStr(18),
       platform: 'instagram',
       amount: 1200,
-      type: 'sponsored-reel',
+      type: 'Sponsorship',
       reelId: 'reel-12',
     },
     {
@@ -363,7 +363,7 @@ function generateRevenueData(rng) {
       date: dateStr(12),
       platform: 'tiktok',
       amount: 600,
-      type: 'sponsored-reel',
+      type: 'Sponsorship',
       reelId: 'reel-22',
     },
     {
@@ -372,7 +372,7 @@ function generateRevenueData(rng) {
       date: dateStr(5),
       platform: 'instagram',
       amount: 1500,
-      type: 'sponsored-reel',
+      type: 'Sponsorship',
       reelId: 'reel-38',
     },
     {
@@ -381,7 +381,7 @@ function generateRevenueData(rng) {
       date: dateStr(2),
       platform: 'tiktok',
       amount: 750,
-      type: 'sponsored-reel',
+      type: 'Sponsorship',
       reelId: 'reel-42',
     },
   ]

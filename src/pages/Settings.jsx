@@ -384,7 +384,7 @@ export default function Settings() {
     } else {
       // Try cached data as fallback
       const cached = await fetchCachedSync()
-      if (cached) {
+      if (cached?.available) {
         if (cached.followers) saveData(KEYS.FOLLOWERS + 'daily', cached.followers)
         if (cached.reels) saveData(KEYS.REELS + 'all', cached.reels)
         saveData(SYNC_STATUS_KEY, { syncedAt: cached.syncedAt || new Date().toISOString() })

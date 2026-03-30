@@ -14,15 +14,16 @@ const FB_DARK = '#4267B2'
 const IG_PINK = '#E1306C'
 
 function fmt(n) {
+  if (n == null) return '--'
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
   if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
   return n.toLocaleString()
 }
 
 function TrendArrow({ value }) {
-  if (value > 0) return <span className="text-green-500 text-sm font-semibold">&#9650; {value.toFixed(1)}%</span>
-  if (value < 0) return <span className="text-red-500 text-sm font-semibold">&#9660; {Math.abs(value).toFixed(1)}%</span>
-  return <span className="text-gray-400 text-sm">&mdash; 0%</span>
+  if (value > 0) return <span className="text-green-500 text-sm font-semibold">{'\u25B2'} {value.toFixed(1)}%</span>
+  if (value < 0) return <span className="text-red-500 text-sm font-semibold">{'\u25BC'} {Math.abs(value).toFixed(1)}%</span>
+  return <span className="text-gray-400 text-sm">{'\u2014'} 0%</span>
 }
 
 const DEMO_OPTIONS = ['25-34', '35-44', '18-24']
@@ -230,7 +231,7 @@ export default function Facebook({ dateRange }) {
   }
 
   function SortIcon({ col }) {
-    if (sortCol !== col) return <span className="text-gray-300 ml-1">&#8597;</span>
+    if (sortCol !== col) return <span className="text-gray-300 ml-1">{'\u2195'}</span>
     return <span className="ml-1">{sortAsc ? '\u25B2' : '\u25BC'}</span>
   }
 

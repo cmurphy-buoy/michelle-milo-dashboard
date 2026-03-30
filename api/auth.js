@@ -10,10 +10,12 @@ export default async function handler(req, res) {
     try {
       const meta = await getTokens('meta')
       const tiktok = await getTokens('tiktok')
+      const metaConnected = meta?.accessToken && (!meta.expiresAt || new Date(meta.expiresAt) > new Date())
+      const tiktokConnected = tiktok?.accessToken && (!tiktok.expiresAt || new Date(tiktok.expiresAt) > new Date())
       return res.status(200).json({
-        meta: meta ? { connected: true, username: meta.username, igUserId: meta.igUserId, expiresAt: meta.expiresAt } : { connected: false },
-        tiktok: tiktok ? { connected: true, username: tiktok.username, openId: tiktok.openId, expiresAt: tiktok.expiresAt } : { connected: false },
-        facebook: meta ? { connected: true, pageId: meta.pageId, pageName: meta.pageName } : { connected: false },
+        meta: metaConnected ? { connected: true, username: meta.username, igUserId: meta.igUserId, expiresAt: meta.expiresAt } : { connected: false, expired: meta?.expiresAt ? new Date(meta.expiresAt) <= new Date() : false },
+        tiktok: tiktokConnected ? { connected: true, username: tiktok.username, openId: tiktok.openId, expiresAt: tiktok.expiresAt } : { connected: false, expired: tiktok?.expiresAt ? new Date(tiktok.expiresAt) <= new Date() : false },
+        facebook: metaConnected ? { connected: true, pageId: meta.pageId, pageName: meta.pageName } : { connected: false },
       })
     } catch { return res.status(500).json({ error: 'Failed to check status' }) }
   }

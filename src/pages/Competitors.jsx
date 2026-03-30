@@ -171,15 +171,17 @@ function CompetitorForm({ accounts, onAdd, onDelete }) {
 // SECTION 2 — Rank Cards
 // ---------------------------------------------------------------------------
 
-function RankCards({ mmData, competitors, history }) {
+function RankCards({ mmData, competitors, history, mmReels }) {
   const rankings = useMemo(() => {
     if (!mmData) return null
 
     const mmFollowers = mmData.instagram || 0
-    // Estimate M&M avg views & engagement from followers (reasonable defaults)
-    // These would normally come from reels data; using follower-based heuristics
-    const mmAvgViews = Math.round(mmFollowers * 0.8)
-    const mmEngagement = 5.2 // M&M typical engagement
+    // Use actual reel data for views and engagement
+    const totalViews = mmReels.reduce((s, r) => s + r.views, 0)
+    const mmAvgViews = mmReels.length ? Math.round(totalViews / mmReels.length) : 0
+    const totalEng = mmReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
+    const totalReach = mmReels.reduce((s, r) => s + r.reach, 0)
+    const mmEngagement = totalReach > 0 ? +((totalEng / totalReach) * 100).toFixed(2) : 0
 
     const entries = [
       { name: 'Michelle & Milo', followers: mmFollowers, avgViews: mmAvgViews, engagementRate: mmEngagement },
@@ -301,7 +303,7 @@ function ComparisonCharts({ mmFollowers, competitors, history, dateRange }) {
       if (h && h.length > 1) {
         const first = h[0].followers
         const last = h[h.length - 1].followers
-        const g = ((last - first) / first) * 100
+        const g = first > 0 ? ((last - first) / first) * 100 : 0
         growthData.push({
           name: c.name.length > 12 ? c.name.slice(0, 12) + '..' : c.name,
           growth: +g.toFixed(2),
@@ -647,7 +649,7 @@ export default function Competitors({ dateRange }) {
 
       {/* SECTION 2: Rank Cards */}
       {accounts.length > 0 && latestMM && (
-        <RankCards mmData={latestMM} competitors={accounts} history={history} />
+        <RankCards mmData={latestMM} competitors={accounts} history={history} mmReels={getData(KEYS.REELS + 'all') || []} />
       )}
 
       {/* SECTION 3: Comparison Charts */}
@@ -671,7 +673,7 @@ export default function Competitors({ dateRange }) {
       )}
 
       {/* SECTION 5: Industry Benchmarks */}
-      <IndustryBenchmarks mmFollowersLatest={latestMM} />
+      {latestMM && <IndustryBenchmarks mmFollowersLatest={latestMM} />}
 
       {/* Empty state when no competitors */}
       {accounts.length === 0 && (

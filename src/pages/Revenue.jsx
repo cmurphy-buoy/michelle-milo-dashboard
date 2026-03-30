@@ -98,22 +98,22 @@ export default function Revenue({ dateRange }) {
   const curMonthRevenue = curMonthDeals.reduce((s, d) => s + (d.amount || 0), 0)
   const prevMonthRevenue = prevMonthDeals.reduce((s, d) => s + (d.amount || 0), 0)
 
-  const revenuePerPost = deals.length > 0 ? deals.reduce((s, d) => s + (d.amount || 0), 0) / deals.length : 0
+  const revenuePerPost = curMonthDeals.length > 0 ? curMonthRevenue / curMonthDeals.length : 0
   const prevRevenuePerPost = prevMonthDeals.length > 0 ? prevMonthRevenue / prevMonthDeals.length : 0
 
-  // CPM: total revenue / total views of sponsored reels * 1000
+  // CPM: current month revenue / current month sponsored reel views * 1000
   const reelsMap = useMemo(() => {
     const m = {}
     reels.forEach((r) => { m[r.id] = r })
     return m
   }, [reels])
 
-  const sponsoredViews = deals.reduce((s, d) => {
+  const curSponsoredViews = curMonthDeals.reduce((s, d) => {
     const reel = reelsMap[d.reelId]
     return s + (reel ? reel.views : 0)
   }, 0)
   const totalRevenue = deals.reduce((s, d) => s + (d.amount || 0), 0)
-  const cpm = sponsoredViews > 0 ? (totalRevenue / sponsoredViews) * 1000 : 0
+  const cpm = curSponsoredViews > 0 ? (curMonthRevenue / curSponsoredViews) * 1000 : 0
 
   const prevSponsoredViews = prevMonthDeals.reduce((s, d) => {
     const reel = reelsMap[d.reelId]
