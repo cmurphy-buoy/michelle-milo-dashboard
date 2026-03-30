@@ -15,6 +15,7 @@ export default function FollowerChart({ followers }) {
     Instagram: d.instagram || 0,
     TikTok: d.tiktok || 0,
     Facebook: d.facebook || 0,
+    LinkedIn: d.linkedin || 0,
   }))
 
   return (
@@ -30,6 +31,7 @@ export default function FollowerChart({ followers }) {
           <Line type="monotone" dataKey="Instagram" stroke="#C13584" strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="TikTok" stroke="#00C9B1" strokeWidth={2} dot={false} />
           <Line type="monotone" dataKey="Facebook" stroke="#1877F2" strokeWidth={2} dot={false} />
+          <Line type="monotone" dataKey="LinkedIn" stroke="#0A66C2" strokeWidth={2} dot={false} />
         </LineChart>
       </ResponsiveContainer>
     </div>

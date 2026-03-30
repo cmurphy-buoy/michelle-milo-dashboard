@@ -42,6 +42,15 @@ const PLATFORMS = [
     color: 'from-blue-600 to-blue-400',
     note: 'Connects automatically with Instagram (same Meta OAuth)',
   },
+  {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    icon: '\u{1F4BC}',
+    oauthKey: 'linkedin',
+    statusKey: 'linkedin',
+    color: 'from-blue-700 to-blue-500',
+    note: 'Coming soon — LinkedIn API integration is in development.',
+  },
 ]
 
 const SETUP_STEPS = [
@@ -85,7 +94,7 @@ function ConnectionCard({ platform, status, onConnect, onDisconnect, onSync, syn
     : null
 
   return (
-    <div className="bg-white rounded-2xl border border-orange-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {/* Header stripe */}
       <div className={`h-1.5 bg-gradient-to-r ${platform.color}`} />
 
@@ -141,7 +150,7 @@ function ConnectionCard({ platform, status, onConnect, onDisconnect, onSync, syn
               <button
                 onClick={onSync}
                 disabled={syncing}
-                className="flex-1 px-3 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="flex-1 px-3 py-2 text-sm font-medium text-[#0f1b4c] bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50"
               >
                 {syncing ? 'Syncing...' : 'Sync All'}
               </button>
@@ -151,7 +160,7 @@ function ConnectionCard({ platform, status, onConnect, onDisconnect, onSync, syn
           /* Connect button */
           <button
             onClick={() => onConnect(platform.oauthKey)}
-            className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-orange-500 rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
+            className="w-full px-4 py-2.5 text-sm font-semibold text-white bg-[#0f1b4c] rounded-lg hover:bg-[#1a2d6d] transition-colors shadow-sm"
           >
             Connect {platform.name}
           </button>
@@ -177,7 +186,7 @@ function SyncStatusSection({ lastSync, onSyncAll, syncing, toast }) {
     : 'Never'
 
   return (
-    <div className="bg-white rounded-2xl border border-orange-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
       <h2 className="text-lg font-semibold text-gray-800 mb-4">Sync Status</h2>
 
       <div className="flex items-center justify-between mb-4">
@@ -188,7 +197,7 @@ function SyncStatusSection({ lastSync, onSyncAll, syncing, toast }) {
         <button
           onClick={onSyncAll}
           disabled={syncing}
-          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition-colors shadow-sm disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-[#0f1b4c] rounded-xl hover:bg-[#1a2d6d] transition-colors shadow-sm disabled:opacity-50"
         >
           {syncing && (
             <svg
@@ -240,11 +249,11 @@ function AccountSetupGuide() {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="bg-white rounded-2xl border border-orange-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       {/* Toggle header */}
       <button
         onClick={() => setExpanded((v) => !v)}
-        className="w-full flex items-center justify-between p-6 text-left hover:bg-orange-50/40 transition-colors"
+        className="w-full flex items-center justify-between p-6 text-left hover:bg-blue-50/40 transition-colors"
       >
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Account Setup Guide</h2>
@@ -267,11 +276,11 @@ function AccountSetupGuide() {
 
       {/* Steps */}
       {expanded && (
-        <div className="px-6 pb-6 space-y-4 border-t border-orange-50 pt-4">
+        <div className="px-6 pb-6 space-y-4 border-t border-slate-100 pt-4">
           {SETUP_STEPS.map((step, idx) => (
             <div key={idx} className="flex gap-3">
               {/* Step number */}
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-bold">
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-blue-100 text-[#0f1b4c] flex items-center justify-center text-sm font-bold">
                 {idx + 1}
               </div>
               <div>
@@ -298,6 +307,7 @@ export default function Settings() {
     meta: null,
     tiktok: null,
     facebook: null,
+    linkedin: null,
   })
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
@@ -322,6 +332,7 @@ export default function Settings() {
           meta: status.meta || null,
           tiktok: status.tiktok || null,
           facebook: status.facebook || null,
+          linkedin: status.linkedin || null,
         })
       }
       setLoading(false)
@@ -359,6 +370,7 @@ export default function Settings() {
           meta: status.meta || null,
           tiktok: status.tiktok || null,
           facebook: status.facebook || null,
+          linkedin: status.linkedin || null,
         })
       }
       setToast({ type: 'success', message: 'Platform disconnected successfully.' })
@@ -417,7 +429,7 @@ export default function Settings() {
     return (
       <div className="flex items-center justify-center py-24">
         <svg
-          className="animate-spin h-8 w-8 text-orange-400"
+          className="animate-spin h-8 w-8 text-slate-400"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"

@@ -5,7 +5,7 @@ function localDateStr(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const PLATFORMS = ['instagram', 'tiktok', 'facebook']
+const PLATFORMS = ['instagram', 'tiktok', 'facebook', 'linkedin']
 const CATEGORIES = ['tricks', 'day-in-life', 'funny', 'grooming', 'travel']
 const STATUSES = ['idea', 'filming', 'editing', 'ready', 'posted']
 const STATUS_COLORS = {
@@ -19,6 +19,7 @@ const PLATFORM_COLORS = {
   instagram: 'border-l-purple-500 bg-purple-50',
   tiktok: 'border-l-teal-500 bg-teal-50',
   facebook: 'border-l-blue-500 bg-blue-50',
+  linkedin: 'border-l-blue-700 bg-blue-50',
 }
 const URGENCY_COLORS = { '24h': 'bg-red-100 text-red-700', '3d': 'bg-orange-100 text-orange-700', '1w': 'bg-green-100 text-green-700' }
 const PRIORITY_COLORS = { hot: 'bg-red-100 text-red-700', warm: 'bg-orange-100 text-orange-700', backlog: 'bg-gray-100 text-gray-600' }
@@ -160,13 +161,13 @@ function PostModal({ post, onSave, onClose }) {
 }
 
 function CadenceTracker({ posts }) {
-  const targets = { instagram: 5, tiktok: 4, facebook: 3 }
+  const targets = { instagram: 5, tiktok: 4, facebook: 3, linkedin: 2 }
 
   const thisWeek = useMemo(() => {
     const now = new Date()
     const weekAgo = new Date(now)
     weekAgo.setDate(now.getDate() - 7)
-    const counts = { instagram: 0, tiktok: 0, facebook: 0 }
+    const counts = { instagram: 0, tiktok: 0, facebook: 0, linkedin: 0 }
     posts.filter((p) => p.status === 'posted' && new Date(p.date) >= weekAgo).forEach((p) => {
       (p.platforms || []).forEach((pl) => { if (counts[pl] !== undefined) counts[pl]++ })
     })
@@ -463,7 +464,7 @@ export default function Calendar() {
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
 
   // Cadence data
-  const weekTarget = { instagram: 5, tiktok: 4, facebook: 3 }
+  const weekTarget = { instagram: 5, tiktok: 4, facebook: 3, linkedin: 2 }
   const planned = filteredPosts.filter((p) => p.status !== 'posted').length
   const posted = filteredPosts.filter((p) => p.status === 'posted').length
 

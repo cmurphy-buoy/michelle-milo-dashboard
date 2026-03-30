@@ -9,11 +9,11 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const PLATFORM_OPTIONS = ['instagram', 'tiktok', 'facebook']
+const PLATFORM_OPTIONS = ['instagram', 'tiktok', 'facebook', 'linkedin']
 const MAX_COMPETITORS = 5
 
 const COLORS = {
-  mm:     '#ea580c', // orange-600 — Michelle & Milo primary
+  mm:     '#0f1b4c', // navy — Our Account primary
   comp1:  '#92400e', // amber-800
   comp2:  '#b45309', // amber-700
   comp3:  '#d97706', // amber-500
@@ -182,7 +182,7 @@ function RankCards({ mmData, competitors, history, mmReels }) {
     const mmEngagement = totalReach > 0 ? +((totalEng / totalReach) * 100).toFixed(2) : 0
 
     const entries = [
-      { name: 'Michelle & Milo', followers: mmFollowers, avgViews: mmAvgViews, engagementRate: mmEngagement },
+      { name: 'Our Account', followers: mmFollowers, avgViews: mmAvgViews, engagementRate: mmEngagement },
     ]
 
     competitors.forEach((c) => {
@@ -202,9 +202,9 @@ function RankCards({ mmData, competitors, history, mmReels }) {
     const byViews = [...entries].sort((a, b) => b.avgViews - a.avgViews)
     const byEngagement = [...entries].sort((a, b) => b.engagementRate - a.engagementRate)
 
-    const followerRank = byFollowers.findIndex((e) => e.name === 'Michelle & Milo') + 1
-    const viewsRank = byViews.findIndex((e) => e.name === 'Michelle & Milo') + 1
-    const engagementRank = byEngagement.findIndex((e) => e.name === 'Michelle & Milo') + 1
+    const followerRank = byFollowers.findIndex((e) => e.name === 'Our Account') + 1
+    const viewsRank = byViews.findIndex((e) => e.name === 'Our Account') + 1
+    const engagementRank = byEngagement.findIndex((e) => e.name === 'Our Account') + 1
 
     return {
       followers: { rank: followerRank, total: entries.length, value: mmFollowers },
@@ -255,7 +255,7 @@ function ComparisonCharts({ mmFollowers, competitors, history, dateRange }) {
 
     // ---- Follower line chart data ----
     const followerData = filtered.map((d) => {
-      const point = { date: d.date.slice(5), 'M&M': d.instagram }
+      const point = { date: d.date.slice(5), 'Us': d.instagram }
       competitors.forEach((c) => {
         const h = history[c.id]
         if (h) {
@@ -270,7 +270,7 @@ function ComparisonCharts({ mmFollowers, competitors, history, dateRange }) {
     const latestMM = filtered.length > 0 ? filtered[filtered.length - 1] : null
     const barEntries = [
       {
-        name: 'M&M',
+        name: 'Us',
         avgViews: latestMM ? Math.round(latestMM.instagram * 0.8) : 0,
         engagementRate: 5.2,
       },
@@ -295,7 +295,7 @@ function ComparisonCharts({ mmFollowers, competitors, history, dateRange }) {
     const mmLast = filtered.length > 1 ? filtered[filtered.length - 1].instagram : null
     const mmGrowth = mmFirst && mmLast ? ((mmLast - mmFirst) / mmFirst) * 100 : 0
 
-    const growthData = [{ name: 'M&M', growth: +mmGrowth.toFixed(2) }]
+    const growthData = [{ name: 'Us', growth: +mmGrowth.toFixed(2) }]
     competitors.forEach((c) => {
       const h = filterByDateRange(history[c.id], dateRange)
       if (h && h.length > 1) {
@@ -327,7 +327,7 @@ function ComparisonCharts({ mmFollowers, competitors, history, dateRange }) {
               <YAxis tickFormatter={fmt} tick={{ fontSize: 11 }} />
               <Tooltip formatter={(v) => fmt(v)} />
               <Legend />
-              <Line type="monotone" dataKey="M&M" stroke={COLORS.mm} strokeWidth={2.5} dot={false} />
+              <Line type="monotone" dataKey="Us" stroke={COLORS.mm} strokeWidth={2.5} dot={false} />
               {competitors.map((c, i) => (
                 <Line key={c.id} type="monotone" dataKey={c.name} stroke={COMP_PALETTE[i % COMP_PALETTE.length]} strokeWidth={1.5} dot={false} />
               ))}
@@ -422,7 +422,7 @@ function GapAnalysis({ mmFollowers, competitors, history, dateRange }) {
 
       let daysToOvertake = null
       if (!ahead && mmDailyGrowth > 0) {
-        // How many days until M&M catches up
+        // How many days until we catch up
         const compFiltered = filterByDateRange(h, dateRange)
         const compFirst = compFiltered.length > 1 ? compFiltered[0].followers : latest.followers
         const compDays = compFiltered.length - 1

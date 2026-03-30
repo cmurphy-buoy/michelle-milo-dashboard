@@ -102,6 +102,7 @@ function generateFollowerData(rng) {
   let ig = 48200
   let tt = 29100
   let fb = 14600
+  let li = 7800
 
   for (let i = days; i >= 0; i--) {
     // Instagram: ~80-140/day organic, breakout bump days 16-14
@@ -115,16 +116,21 @@ function generateFollowerData(rng) {
     // Facebook: slow & steady, ~15-35/day
     const fbGain = randBetween(rng, 15, 35)
 
+    // LinkedIn: steady professional growth, ~10-30/day
+    const liGain = randBetween(rng, 10, 30)
+
     ig += igGain
     tt += ttGain
     fb += fbGain
+    li += liGain
 
     snapshots.push({
       date: dateStr(i),
       instagram: ig,
       tiktok: tt,
       facebook: fb,
-      combined: ig + tt + fb,
+      linkedin: li,
+      combined: ig + tt + fb + li,
     })
   }
 
@@ -140,50 +146,50 @@ function generateReelData(rng) {
 
   const reelTitles = {
     tricks: [
-      'Milo learns to high-five',
+      'Learning to high-five',
       'Spin trick in slow motion',
-      'Teaching Milo to ring a bell',
-      'Milo vs the obstacle course',
+      'Teaching the bell trick',
+      'Obstacle course challenge',
       'New trick: play dead',
       'Shake hands compilation',
-      'Milo catches treats mid-air',
+      'Catching treats mid-air',
       'Balance treat on nose challenge',
     ],
     'day-in-life': [
-      'Morning routine with Milo',
-      'A day at the dog park',
-      'Milo picks his own outfit',
-      'Rainy day vibes with Milo',
-      'Milo helps with groceries',
-      'Sunday snuggles with Milo',
-      'Milo meets the mailman again',
+      'Morning routine behind the scenes',
+      'A day at the park',
+      'Outfit of the day picks',
+      'Rainy day vibes',
+      'Helping with groceries',
+      'Sunday snuggles',
+      'Meeting the mailman again',
     ],
     funny: [
-      'Milo judges my cooking',
-      'POV: Milo hears the treat bag',
-      'Milo steals my spot on the couch',
-      'When Milo sees another dog',
-      'Milo vs the vacuum cleaner',
-      'Dramatic Milo refuses bath time',
-      'Milo acts guilty for no reason',
+      'Judging my cooking',
+      'POV: hearing the treat bag',
+      'Stealing my spot on the couch',
+      'Seeing another dog for the first time',
+      'vs the vacuum cleaner',
+      'Dramatic bath time refusal',
+      'Acting guilty for no reason',
     ],
     grooming: [
       'Spa day transformation',
-      'Brushing out Milo\'s fluff',
+      'Brushing out the fluff',
       'Nail trim routine',
-      'Bath time ASMR with Milo',
+      'Bath time ASMR',
       'Before & after grooming glow-up',
     ],
     travel: [
-      'Milo\'s first beach trip',
-      'Road trip with Milo',
-      'Milo explores a new hiking trail',
-      'Hotel room tour — dog edition',
-      'Milo at the farmer\'s market',
+      'First beach trip ever',
+      'Road trip adventures',
+      'Exploring a new hiking trail',
+      'Hotel room tour',
+      'Farmer\'s market finds',
     ],
   }
 
-  const platforms = ['instagram', 'tiktok', 'facebook']
+  const platforms = ['instagram', 'tiktok', 'facebook', 'linkedin']
   const reels = []
   let reelId = 1
 
@@ -215,7 +221,7 @@ function generateReelData(rng) {
         shares = Math.round(views * (rng() * 0.02 + 0.008))
         saves = Math.round(views * (rng() * 0.01 + 0.005))
         reach = Math.round(views * (rng() * 0.2 + 0.7))
-      } else {
+      } else if (platform === 'facebook') {
         views = randBetween(rng, 5000, 40000)
         if (isBreakout) views = randBetween(rng, 100000, 200000)
         likes = Math.round(views * (rng() * 0.03 + 0.02))
@@ -223,6 +229,15 @@ function generateReelData(rng) {
         shares = Math.round(views * (rng() * 0.025 + 0.01))
         saves = Math.round(views * (rng() * 0.005 + 0.002))
         reach = Math.round(views * (rng() * 0.25 + 0.5))
+      } else {
+        // LinkedIn
+        views = randBetween(rng, 2000, 25000)
+        if (isBreakout) views = randBetween(rng, 50000, 120000)
+        likes = Math.round(views * (rng() * 0.04 + 0.03))
+        comments = Math.round(views * (rng() * 0.008 + 0.003))
+        shares = Math.round(views * (rng() * 0.02 + 0.01)) // reposts
+        saves = Math.round(views * (rng() * 0.003 + 0.001))
+        reach = Math.round(views * (rng() * 0.3 + 0.5))
       }
 
       const watchTimePct = randBetween(rng, 35, 75)
@@ -421,7 +436,7 @@ function generateCalendarData(rng) {
       date: dateStr(i),
       time: pick(rng, ['09:00', '12:00', '15:00', '18:00', '20:00']),
       platforms: rng() > 0.4
-        ? [pick(rng, ['instagram', 'tiktok', 'facebook'])]
+        ? [pick(rng, ['instagram', 'tiktok', 'facebook', 'linkedin'])]
         : ['instagram', 'tiktok'],
       category: pick(rng, categories),
       caption: '',
@@ -440,13 +455,13 @@ function generateCalendarData(rng) {
 
 function generateIdeasData() {
   const ideas = [
-    { id: 'idea-1', title: 'Milo reacts to puppy photos', category: 'funny', platform: 'tiktok', priority: 'hot', notes: 'Trending format right now', createdAt: dateStr(5) },
+    { id: 'idea-1', title: 'Reacting to puppy photos', category: 'funny', platform: 'tiktok', priority: 'hot', notes: 'Trending format right now', createdAt: dateStr(5) },
     { id: 'idea-2', title: 'Dog-friendly recipe series', category: 'day-in-life', platform: 'instagram', priority: 'warm', notes: 'Could be a weekly series', createdAt: dateStr(10) },
-    { id: 'idea-3', title: 'Milo\'s morning stretching routine', category: 'funny', platform: 'tiktok', priority: 'hot', notes: 'Use trending yoga audio', createdAt: dateStr(3) },
+    { id: 'idea-3', title: 'Morning stretching routine', category: 'funny', platform: 'tiktok', priority: 'hot', notes: 'Use trending yoga audio', createdAt: dateStr(3) },
     { id: 'idea-4', title: 'Before/after grooming timelapse', category: 'grooming', platform: 'instagram', priority: 'warm', notes: 'Good save-bait content', createdAt: dateStr(12) },
-    { id: 'idea-5', title: 'Milo tries dog-safe ice cream', category: 'day-in-life', platform: 'instagram', priority: 'backlog', notes: 'Wait for summer', createdAt: dateStr(20) },
-    { id: 'idea-6', title: 'Hiking trail vlog with Milo', category: 'travel', platform: 'tiktok', priority: 'warm', notes: 'Film next weekend', createdAt: dateStr(2) },
-    { id: 'idea-7', title: 'Teach Milo to close the door', category: 'tricks', platform: 'instagram', priority: 'hot', notes: 'Training already started', createdAt: dateStr(1) },
+    { id: 'idea-5', title: 'Trying dog-safe ice cream', category: 'day-in-life', platform: 'instagram', priority: 'backlog', notes: 'Wait for summer', createdAt: dateStr(20) },
+    { id: 'idea-6', title: 'Hiking trail vlog', category: 'travel', platform: 'tiktok', priority: 'warm', notes: 'Film next weekend', createdAt: dateStr(2) },
+    { id: 'idea-7', title: 'Teach close the door trick', category: 'tricks', platform: 'instagram', priority: 'hot', notes: 'Training already started', createdAt: dateStr(1) },
     { id: 'idea-8', title: 'Dog park social hour compilation', category: 'funny', platform: 'facebook', priority: 'backlog', notes: '', createdAt: dateStr(15) },
   ]
 
@@ -493,11 +508,11 @@ function generateTrendsData(rng) {
 
 function generateTemplatesData() {
   const templates = [
-    { id: 'tpl-1', name: 'Trick Reveal', template: 'We\'ve been practicing this one for weeks... 🐾\n\nDrop a ❤️ if Milo nailed it!\n\n{hashtags}' },
-    { id: 'tpl-2', name: 'Day in Life', template: 'Just another day in the life of Milo 🐶✨\n\n{hashtags}' },
-    { id: 'tpl-3', name: 'Funny Moment', template: 'I can\'t with this dog 😂\n\nTag someone who needs to see this!\n\n{hashtags}' },
-    { id: 'tpl-4', name: 'Grooming Day', template: 'Spa day for the good boy 🛁✨\n\nSwipe for the glow-up!\n\n{hashtags}' },
-    { id: 'tpl-5', name: 'Brand Collab', template: 'Milo approved! 🐾 So excited to partner with @{brand} — use code MILO20 for 20% off!\n\n#ad #sponsored\n\n{hashtags}' },
+    { id: 'tpl-1', name: 'Trick Reveal', template: 'We\'ve been practicing this one for weeks...\n\nDrop a heart if you love it!\n\n{hashtags}' },
+    { id: 'tpl-2', name: 'Day in Life', template: 'Just another day behind the scenes\n\n{hashtags}' },
+    { id: 'tpl-3', name: 'Funny Moment', template: 'We can\'t stop laughing at this one\n\nTag someone who needs to see this!\n\n{hashtags}' },
+    { id: 'tpl-4', name: 'Grooming Day', template: 'Spa day vibes\n\nSwipe for the glow-up!\n\n{hashtags}' },
+    { id: 'tpl-5', name: 'Brand Collab', template: 'So excited to partner with @{brand} — use code BUOY20 for 20% off!\n\n#ad #sponsored\n\n{hashtags}' },
   ]
 
   saveData(KEYS.TEMPLATES + 'captions', templates)

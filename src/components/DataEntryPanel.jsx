@@ -5,7 +5,7 @@ function localDateStr(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-const PLATFORMS = ['instagram', 'tiktok', 'facebook']
+const PLATFORMS = ['instagram', 'tiktok', 'facebook', 'linkedin']
 const CATEGORIES = ['tricks', 'day-in-life', 'funny', 'grooming', 'travel']
 
 function ReelForm({ onDone }) {
@@ -84,12 +84,12 @@ function FollowerForm({ onDone }) {
     const existing = followers.find((f) => f.date === form.date)
     if (existing) {
       existing[form.platform] = Number(form.count)
-      existing.combined = (existing.instagram || 0) + (existing.tiktok || 0) + (existing.facebook || 0)
+      existing.combined = (existing.instagram || 0) + (existing.tiktok || 0) + (existing.facebook || 0) + (existing.linkedin || 0)
     } else {
-      const last = followers[followers.length - 1] || { instagram: 0, tiktok: 0, facebook: 0 }
-      const entry = { date: form.date, instagram: last.instagram, tiktok: last.tiktok, facebook: last.facebook }
+      const last = followers[followers.length - 1] || { instagram: 0, tiktok: 0, facebook: 0, linkedin: 0 }
+      const entry = { date: form.date, instagram: last.instagram, tiktok: last.tiktok, facebook: last.facebook, linkedin: last.linkedin || 0 }
       entry[form.platform] = Number(form.count)
-      entry.combined = entry.instagram + entry.tiktok + entry.facebook
+      entry.combined = entry.instagram + entry.tiktok + entry.facebook + (entry.linkedin || 0)
       followers.push(entry)
     }
     followers.sort((a, b) => a.date.localeCompare(b.date))
