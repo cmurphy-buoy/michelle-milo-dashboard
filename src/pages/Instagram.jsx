@@ -40,11 +40,6 @@ function weekAgo() {
   return d.toISOString().slice(0, 10)
 }
 
-function twoWeeksAgo() {
-  const d = new Date()
-  d.setDate(d.getDate() - 14)
-  return d.toISOString().slice(0, 10)
-}
 
 // ---------------------------------------------------------------------------
 // KPI Card
@@ -264,65 +259,73 @@ export default function Instagram({ dateRange }) {
   const allReels = getData(KEYS.REELS + 'all') || []
   const followerData = getData(KEYS.FOLLOWERS + 'daily') || []
 
-  // Filter to Instagram only, then apply date range
-  const igReelsAll = allReels.filter((r) => r.platform === 'instagram')
-  const igReels = filterByDateRange(igReelsAll, dateRange)
+  // ---- Memoised reel filtering + KPI calculations ----
+  const { igReels, kpis } = useMemo(() => {
+    // Filter to Instagram only, then apply date range
+    const igReelsAll = allReels.filter((r) => r.platform === 'instagram')
+    const igReels = filterByDateRange(igReelsAll, dateRange)
 
-  // ---- KPI Calculations ----
-  const latestFollowers = followerData.length > 0 ? followerData[followerData.length - 1].instagram : 0
+    // Follower KPIs
+    const latestFollowers = followerData.length > 0 ? followerData[followerData.length - 1].instagram : 0
+    const weekAgoDate = weekAgo()
+    const followerWeekAgo = [...followerData].reverse().find((s) => s.date <= weekAgoDate)
+    const prevFollowers = followerWeekAgo ? followerWeekAgo.instagram : latestFollowers
+    const followerTrend = prevFollowers > 0 ? ((latestFollowers - prevFollowers) / prevFollowers) * 100 : 0
 
-  // Find follower count ~7 days ago for WoW
-  const weekAgoDate = weekAgo()
-  const followerWeekAgo = [...followerData].reverse().find((s) => s.date <= weekAgoDate)
-  const prevFollowers = followerWeekAgo ? followerWeekAgo.instagram : latestFollowers
-  const followerTrend = prevFollowers > 0 ? ((latestFollowers - prevFollowers) / prevFollowers) * 100 : 0
+    // Split current week vs previous week for WoW trends
+    const weekAgoStr = weekAgo()
+    const twoWeeksAgoDate = new Date()
+    twoWeeksAgoDate.setDate(twoWeeksAgoDate.getDate() - 14)
+    const twoWeeksAgoStr = twoWeeksAgoDate.toISOString().slice(0, 10)
+    const thisWeekReels = igReelsAll.filter((r) => r.date >= weekAgoStr)
+    const lastWeekReels = igReelsAll.filter((r) => r.date >= twoWeeksAgoStr && r.date < weekAgoStr)
 
-  // Split current week vs previous week for WoW trends
-  const weekAgoStr = weekAgo()
-  const twoWeeksAgoStr = twoWeeksAgo()
-  const thisWeekReels = igReelsAll.filter((r) => r.date >= weekAgoStr)
-  const lastWeekReels = igReelsAll.filter((r) => r.date >= twoWeeksAgoStr && r.date < weekAgoStr)
+    const avgViews = igReels.length > 0
+      ? igReels.reduce((s, r) => s + r.views, 0) / igReels.length
+      : 0
+    const avgViewsThisWeek = thisWeekReels.length > 0
+      ? thisWeekReels.reduce((s, r) => s + r.views, 0) / thisWeekReels.length
+      : 0
+    const avgViewsLastWeek = lastWeekReels.length > 0
+      ? lastWeekReels.reduce((s, r) => s + r.views, 0) / lastWeekReels.length
+      : 0
+    const viewsTrend = avgViewsLastWeek > 0
+      ? ((avgViewsThisWeek - avgViewsLastWeek) / avgViewsLastWeek) * 100
+      : 0
 
-  const avgViews = igReels.length > 0
-    ? igReels.reduce((s, r) => s + r.views, 0) / igReels.length
-    : 0
-  const avgViewsThisWeek = thisWeekReels.length > 0
-    ? thisWeekReels.reduce((s, r) => s + r.views, 0) / thisWeekReels.length
-    : 0
-  const avgViewsLastWeek = lastWeekReels.length > 0
-    ? lastWeekReels.reduce((s, r) => s + r.views, 0) / lastWeekReels.length
-    : 0
-  const viewsTrend = avgViewsLastWeek > 0
-    ? ((avgViewsThisWeek - avgViewsLastWeek) / avgViewsLastWeek) * 100
-    : 0
+    // Engagement rate
+    const totalEngagement = igReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
+    const totalReach = igReels.reduce((s, r) => s + r.reach, 0)
+    const engagementRate = totalReach > 0 ? (totalEngagement / totalReach) * 100 : 0
 
-  // Engagement rate
-  const totalEngagement = igReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
-  const totalReach = igReels.reduce((s, r) => s + r.reach, 0)
-  const engagementRate = totalReach > 0 ? (totalEngagement / totalReach) * 100 : 0
+    const engThis = thisWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
+    const reachThis = thisWeekReels.reduce((s, r) => s + r.reach, 0)
+    const engRateThis = reachThis > 0 ? (engThis / reachThis) * 100 : 0
+    const engLast = lastWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
+    const reachLast = lastWeekReels.reduce((s, r) => s + r.reach, 0)
+    const engRateLast = reachLast > 0 ? (engLast / reachLast) * 100 : 0
+    const engTrend = engRateLast > 0 ? ((engRateThis - engRateLast) / engRateLast) * 100 : 0
 
-  const engThis = thisWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
-  const reachThis = thisWeekReels.reduce((s, r) => s + r.reach, 0)
-  const engRateThis = reachThis > 0 ? (engThis / reachThis) * 100 : 0
-  const engLast = lastWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
-  const reachLast = lastWeekReels.reduce((s, r) => s + r.reach, 0)
-  const engRateLast = reachLast > 0 ? (engLast / reachLast) * 100 : 0
-  const engTrend = engRateLast > 0 ? ((engRateThis - engRateLast) / engRateLast) * 100 : 0
+    // Follows from reels (est. 2% of non-follower reach)
+    const followsFromReels = igReels.reduce(
+      (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
+      0
+    )
+    const followsThis = thisWeekReels.reduce(
+      (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
+      0
+    )
+    const followsLast = lastWeekReels.reduce(
+      (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
+      0
+    )
+    const followsTrend = followsLast > 0 ? ((followsThis - followsLast) / followsLast) * 100 : 0
 
-  // Follows from reels (est. 2% of non-follower reach)
-  const followsFromReels = igReels.reduce(
-    (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
-    0
-  )
-  const followsThis = thisWeekReels.reduce(
-    (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
-    0
-  )
-  const followsLast = lastWeekReels.reduce(
-    (s, r) => s + Math.round(r.reach * (r.nonFollowerReachPct / 100) * 0.02),
-    0
-  )
-  const followsTrend = followsLast > 0 ? ((followsThis - followsLast) / followsLast) * 100 : 0
+    return {
+      igReels,
+      kpis: { latestFollowers, followerTrend, avgViews, viewsTrend, engagementRate, engTrend, followsFromReels, followsTrend },
+    }
+  }, [dateRange, allReels, followerData])
 
   // ---- Chart Data: Views over time ----
   const viewsByDate = useMemo(() => {
@@ -384,26 +387,26 @@ export default function Instagram({ dateRange }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           label="IG Followers"
-          value={fmt(latestFollowers)}
-          trend={followerTrend}
+          value={fmt(kpis.latestFollowers)}
+          trend={kpis.followerTrend}
           borderColor="border-purple-400"
         />
         <KpiCard
           label="Avg Reel Views"
-          value={fmt(Math.round(avgViews))}
-          trend={viewsTrend}
+          value={fmt(Math.round(kpis.avgViews))}
+          trend={kpis.viewsTrend}
           borderColor="border-pink-400"
         />
         <KpiCard
           label="IG Engagement Rate"
-          value={pct(engagementRate)}
-          trend={engTrend}
+          value={pct(kpis.engagementRate)}
+          trend={kpis.engTrend}
           borderColor="border-purple-400"
         />
         <KpiCard
           label="Follows from Reels"
-          value={fmt(followsFromReels)}
-          trend={followsTrend}
+          value={fmt(kpis.followsFromReels)}
+          trend={kpis.followsTrend}
           borderColor="border-pink-400"
         />
       </div>

@@ -30,8 +30,7 @@ export async function setOAuthState(state) {
 }
 
 export async function validateOAuthState(state) {
-  const val = await redis.get(`oauth:state:${state}`)
-  if (val) await redis.del(`oauth:state:${state}`)
+  const val = await redis.getdel(`oauth:state:${state}`)
   return !!val
 }
 

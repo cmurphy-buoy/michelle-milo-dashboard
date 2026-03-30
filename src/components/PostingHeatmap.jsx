@@ -4,17 +4,10 @@ const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function PostingHeatmap({ reels }) {
   const grid = useMemo(() => {
-    // Build a 4-week × 7-day grid of post counts
-    const weeks = [[], [], [], []]
+    // Build a 5-week × 7-day grid of post counts (handles months with 5 weeks)
+    const numWeeks = 5
+    const weeks = Array.from({ length: numWeeks }, () => Array(7).fill(0))
     const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-    // Initialize grid
-    for (let w = 0; w < 4; w++) {
-      for (let d = 0; d < 7; d++) {
-        weeks[w].push(0)
-      }
-    }
 
     const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1
     const prevMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear()
@@ -25,7 +18,7 @@ export default function PostingHeatmap({ reels }) {
       const isPrevMonth = rd.getMonth() === prevMonth && rd.getFullYear() === prevMonthYear
       if (!isCurrentMonth && !isPrevMonth) return
       const dayOfMonth = rd.getDate()
-      const weekIdx = Math.min(3, Math.floor((dayOfMonth - 1) / 7))
+      const weekIdx = Math.min(numWeeks - 1, Math.floor((dayOfMonth - 1) / 7))
       const dayIdx = (rd.getDay() + 6) % 7 // Monday=0
       weeks[weekIdx][dayIdx]++
     })

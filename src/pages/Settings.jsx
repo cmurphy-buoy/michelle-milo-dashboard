@@ -12,7 +12,7 @@ import { getData, saveData, KEYS } from '../utils/storage'
 // Constants
 // ---------------------------------------------------------------------------
 
-const SYNC_STATUS_KEY = 'mm:sync:status'
+const SYNC_STATUS_KEY = KEYS.SYNC + 'status'
 
 const PLATFORMS = [
   {
@@ -143,7 +143,7 @@ function ConnectionCard({ platform, status, onConnect, onDisconnect, onSync, syn
                 disabled={syncing}
                 className="flex-1 px-3 py-2 text-sm font-medium text-orange-600 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors disabled:opacity-50"
               >
-                {syncing ? 'Syncing...' : 'Sync Now'}
+                {syncing ? 'Syncing...' : 'Sync All'}
               </button>
             </div>
           </>
@@ -302,10 +302,10 @@ export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [toast, setToast] = useState(null)
-
-  // Read last sync from localStorage
-  const syncStatus = getData(SYNC_STATUS_KEY)
-  const lastSync = syncStatus?.syncedAt || null
+  const [lastSync, setLastSync] = useState(() => {
+    const syncStatus = getData(SYNC_STATUS_KEY)
+    return syncStatus?.syncedAt || null
+  })
 
   // -----------------------------------------------------------------------
   // Load connection status on mount
@@ -379,7 +379,9 @@ export default function Settings() {
       // Persist synced data
       if (result.followers) saveData(KEYS.FOLLOWERS + 'daily', result.followers)
       if (result.reels) saveData(KEYS.REELS + 'all', result.reels)
-      saveData(SYNC_STATUS_KEY, { syncedAt: result.syncedAt || new Date().toISOString() })
+      const syncedAt = result.syncedAt || new Date().toISOString()
+      saveData(SYNC_STATUS_KEY, { syncedAt })
+      setLastSync(syncedAt)
       setToast({ type: 'success', message: 'All platforms synced successfully!' })
     } else {
       // Try cached data as fallback
@@ -387,7 +389,9 @@ export default function Settings() {
       if (cached?.available) {
         if (cached.followers) saveData(KEYS.FOLLOWERS + 'daily', cached.followers)
         if (cached.reels) saveData(KEYS.REELS + 'all', cached.reels)
-        saveData(SYNC_STATUS_KEY, { syncedAt: cached.syncedAt || new Date().toISOString() })
+        const syncedAt = cached.syncedAt || new Date().toISOString()
+        saveData(SYNC_STATUS_KEY, { syncedAt })
+        setLastSync(syncedAt)
         setToast({ type: 'success', message: 'Loaded cached sync data.' })
       } else {
         setToast({ type: 'error', message: 'Sync failed. Check your connections and try again.' })
@@ -398,7 +402,7 @@ export default function Settings() {
   }
 
   async function handleSyncSingle() {
-    // Single-platform sync uses the same syncAll endpoint
+    // Per-platform sync is not yet supported by the API; delegates to full sync
     await handleSyncAll()
   }
 

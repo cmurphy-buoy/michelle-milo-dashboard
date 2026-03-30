@@ -49,7 +49,7 @@ function CalendarGrid({ posts, currentDate, onSelectPost }) {
       ))}
       {cells.map((day, i) => {
         const dayPosts = getPostsForDay(day)
-        const isToday = day && new Date().getDate() === day && new Date().getMonth() === month
+        const isToday = day && new Date().getDate() === day && new Date().getMonth() === month && new Date().getFullYear() === year
         return (
           <div key={i} className={`bg-white min-h-[100px] p-1.5 ${!day ? 'bg-gray-50' : ''}`}>
             {day && (
@@ -185,7 +185,9 @@ function CadenceTracker({ posts }) {
 
   const daysSince = (dateStr) => {
     if (!dateStr) return 999
-    return Math.floor((new Date() - new Date(dateStr)) / 86400000)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return Math.floor((today - new Date(dateStr + 'T00:00:00')) / 86400000)
   }
 
   return (
@@ -253,6 +255,12 @@ function Sidebar({ onMoveToCalendar }) {
     setNewTrend({ name: '', urgency: '3d', platform: 'tiktok' })
   }
 
+  const deleteTrend = (id) => {
+    const updated = trends.filter((t) => t.id !== id)
+    setTrends(updated)
+    saveData(KEYS.TRENDS + 'log', updated)
+  }
+
   // Hashtags
   const addHashtagSet = () => {
     if (!newHashtagSet.name || !newHashtagSet.tags) return
@@ -263,6 +271,12 @@ function Sidebar({ onMoveToCalendar }) {
     setNewHashtagSet({ name: '', tags: '' })
   }
 
+  const deleteHashtagSet = (id) => {
+    const updated = hashtags.filter((hs) => hs.id !== id)
+    setHashtags(updated)
+    saveData(KEYS.HASHTAGS + 'sets', updated)
+  }
+
   // Templates
   const addTemplate = () => {
     if (!newTemplate.name || !newTemplate.template) return
@@ -271,6 +285,12 @@ function Sidebar({ onMoveToCalendar }) {
     setTemplates(updated)
     saveData(KEYS.TEMPLATES + 'captions', updated)
     setNewTemplate({ name: '', template: '' })
+  }
+
+  const deleteTemplate = (id) => {
+    const updated = templates.filter((tpl) => tpl.id !== id)
+    setTemplates(updated)
+    saveData(KEYS.TEMPLATES + 'captions', updated)
   }
 
   const copy = (text) => navigator.clipboard.writeText(text)
@@ -324,6 +344,7 @@ function Sidebar({ onMoveToCalendar }) {
               <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${URGENCY_COLORS[t.urgency]}`}>{t.urgency}</span>
               <span className="text-gray-700 truncate flex-1">{t.name}</span>
               {t.used && <span className="text-green-500 text-[10px]">Used</span>}
+              <button onClick={() => deleteTrend(t.id)} className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px]">×</button>
             </div>
           ))}
         </div>
@@ -350,6 +371,7 @@ function Sidebar({ onMoveToCalendar }) {
                     <span className="text-[10px] text-gray-400">{hs.tags.length} tags</span>
                     {hs.tags.length > 30 && <span className="text-[10px] text-red-500 font-bold">⚠ &gt;30</span>}
                     <button onClick={() => copy(hs.tags.join(' '))} className="px-2 py-0.5 bg-gray-100 rounded text-[10px]">Copy</button>
+                    <button onClick={() => deleteHashtagSet(hs.id)} className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px]">×</button>
                   </div>
                 </div>
                 <p className="text-[10px] text-gray-400 mt-0.5 truncate">{hs.tags.join(' ')}</p>
@@ -370,6 +392,7 @@ function Sidebar({ onMoveToCalendar }) {
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-medium text-gray-700">{tpl.name}</span>
                   <button onClick={() => copy(tpl.template)} className="px-2 py-0.5 bg-gray-100 rounded text-[10px]">Copy</button>
+                  <button onClick={() => deleteTemplate(tpl.id)} className="px-2 py-0.5 bg-red-100 text-red-700 rounded text-[10px]">×</button>
                 </div>
                 <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-2">{tpl.template}</p>
               </div>
@@ -507,6 +530,9 @@ export default function Calendar() {
 
           {view === 'list' && (
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              {filteredPosts.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-8">No posts found</p>
+              ) : (
               <div className="divide-y divide-gray-50">
                 {[...filteredPosts].sort((a, b) => a.date.localeCompare(b.date)).map((p) => (
                   <button key={p.id} onClick={() => handleSelectPost(p)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50">
@@ -519,6 +545,7 @@ export default function Calendar() {
                   </button>
                 ))}
               </div>
+              )}
             </div>
           )}
 
@@ -526,10 +553,10 @@ export default function Calendar() {
             <div className="bg-white rounded-xl shadow-sm p-4">
               <p className="text-sm text-gray-500">Weekly view — showing posts for the current week</p>
               <div className="grid grid-cols-7 gap-2 mt-4">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, di) => {
+                {DAYS.map((day, di) => {
                   const d = new Date()
                   const startOfWeek = new Date(d)
-                  startOfWeek.setDate(d.getDate() - ((d.getDay() + 6) % 7) + di)
+                  startOfWeek.setDate(d.getDate() - d.getDay() + di)
                   const dateStr = startOfWeek.toISOString().slice(0, 10)
                   const dayPosts = filteredPosts.filter((p) => p.date === dateStr)
                   return (
@@ -554,11 +581,9 @@ export default function Calendar() {
         </div>
 
         {/* Right sidebar */}
-        {sidebarOpen && (
-          <div className="hidden lg:block">
-            <Sidebar onMoveToCalendar={handleMoveToCalendar} />
-          </div>
-        )}
+        <div className="hidden lg:block">
+          <Sidebar onMoveToCalendar={handleMoveToCalendar} />
+        </div>
       </div>
 
       {/* Mobile sidebar toggle content */}

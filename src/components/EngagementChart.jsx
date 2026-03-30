@@ -15,8 +15,17 @@ export default function EngagementChart({ reels }) {
       weeks[key].Comments += r.comments
       weeks[key].Likes += r.likes
     })
-    return Object.values(weeks).sort((a, b) => a.week.localeCompare(b.week))
+    return Object.values(weeks).sort((a, b) => a.week.localeCompare(b.week)).map((w) => ({ ...w, weekLabel: w.week.slice(5) }))
   }, [reels])
+
+  if (!weeklyData.length) {
+    return (
+      <div className="bg-white rounded-xl p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-gray-700 mb-4">Engagement Breakdown</h3>
+        <div className="flex items-center justify-center h-[280px] text-gray-400 text-sm">No engagement data available</div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-white rounded-xl p-5 shadow-sm">
@@ -24,7 +33,7 @@ export default function EngagementChart({ reels }) {
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={weeklyData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="week" tick={{ fontSize: 11 }} />
+          <XAxis dataKey="weekLabel" tick={{ fontSize: 11 }} />
           <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v / 1000).toFixed(1) + 'K'} />
           <Tooltip />
           <Legend />

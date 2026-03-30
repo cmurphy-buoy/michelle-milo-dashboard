@@ -28,6 +28,11 @@ function TrendArrow({ value }) {
 
 const DEMO_OPTIONS = ['25-34', '35-44', '18-24']
 
+function SortIcon({ active, dir }) {
+  if (!active) return <span className="text-gray-300 ml-1">{'\u2195'}</span>
+  return <span className="ml-1">{dir === 'asc' ? '\u25B2' : '\u25BC'}</span>
+}
+
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
@@ -57,7 +62,7 @@ export default function Facebook({ dateRange }) {
     const cutoff = dateRange > 0 ? followers.length - dateRange : 0
     const filteredFollowers = followers.slice(Math.max(0, cutoff))
 
-    return { fbReels, igReels, allReels: filteredReels, followers: filteredFollowers, allFollowers: followers }
+    return { fbReels, igReels, allReels: filteredReels, followers: filteredFollowers }
   }, [dateRange])
 
   // -----------------------------------------------------------------------
@@ -65,7 +70,7 @@ export default function Facebook({ dateRange }) {
   // -----------------------------------------------------------------------
 
   const kpis = useMemo(() => {
-    const { fbReels, followers, allFollowers } = data
+    const { fbReels, followers } = data
 
     // FB Followers
     const latest = followers[followers.length - 1]
@@ -230,10 +235,6 @@ export default function Facebook({ dateRange }) {
     }
   }
 
-  function SortIcon({ col }) {
-    if (sortCol !== col) return <span className="text-gray-300 ml-1">{'\u2195'}</span>
-    return <span className="ml-1">{sortAsc ? '\u25B2' : '\u25BC'}</span>
-  }
 
   // -----------------------------------------------------------------------
   // Render
@@ -321,7 +322,7 @@ export default function Facebook({ dateRange }) {
                     onClick={() => handleSort(col.key)}
                   >
                     {col.label}
-                    <SortIcon col={col.key} />
+                    <SortIcon active={sortCol === col.key} dir={sortAsc ? 'asc' : 'desc'} />
                   </th>
                 ))}
               </tr>

@@ -72,6 +72,8 @@ export function transformTikTokVideo(video) {
 // ---------------------------------------------------------------------------
 
 export function mergeReels(existing, incoming) {
+  existing = existing || []
+  incoming = incoming || []
   const map = new Map()
   existing.forEach((r) => map.set(r.id, r))
   incoming.forEach((r) => {
@@ -94,6 +96,8 @@ export function mergeReels(existing, incoming) {
 }
 
 export function mergeFollowers(existing, incoming) {
+  existing = existing || []
+  incoming = incoming || []
   const map = new Map()
   existing.forEach((f) => map.set(f.date, { ...f }))
   incoming.forEach((f) => {

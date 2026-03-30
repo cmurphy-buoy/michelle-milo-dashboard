@@ -39,7 +39,7 @@ function App() {
     setRefreshKey((k) => k + 1)
   }, [])
 
-  const [toast, setToast] = useState('')
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     setHasData(getAllKeys().length > 0)
@@ -49,15 +49,15 @@ function App() {
     const connected = params.get('connected')
     const error = params.get('error')
     if (connected) {
-      setToast(`${connected === 'meta' ? 'Instagram & Facebook' : 'TikTok'} connected successfully!`)
+      setToast({ type: 'success', message: `${connected === 'meta' ? 'Instagram & Facebook' : 'TikTok'} connected successfully!` })
       setActiveTab('settings')
       window.history.replaceState({}, '', window.location.pathname)
-      setTimeout(() => setToast(''), 4000)
+      setTimeout(() => setToast(null), 4000)
     } else if (error) {
-      setToast(`Connection failed: ${error}`)
+      setToast({ type: 'error', message: `Connection failed: ${error}` })
       setActiveTab('settings')
       window.history.replaceState({}, '', window.location.pathname)
-      setTimeout(() => setToast(''), 4000)
+      setTimeout(() => setToast(null), 4000)
     }
   }, [])
 
@@ -185,8 +185,8 @@ function App() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50 animate-fade-in ${toast.includes('failed') || toast.includes('error') ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-          {toast}
+        <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg text-sm font-medium z-50 animate-fade-in ${toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
+          {toast.message}
         </div>
       )}
     </div>

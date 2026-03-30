@@ -7,6 +7,7 @@ export default async function handler(req, res) {
 
   // --- GET /api/auth?action=status ---
   if (action === 'status') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
     try {
       const meta = await getTokens('meta')
       const tiktok = await getTokens('tiktok')
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
 
   // --- GET /api/auth?action=meta-init ---
   if (action === 'meta-init') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
     const state = crypto.randomBytes(32).toString('hex')
     await setOAuthState(state)
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`
@@ -36,9 +38,9 @@ export default async function handler(req, res) {
     const { code, state, error: authError } = req.query
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`
     if (authError) return res.redirect(`${appUrl}/?error=auth_denied`)
-    if (!code || !state) return res.status(400).json({ error: 'Missing code or state' })
+    if (!code || !state) return res.redirect(`${appUrl}/?error=missing_params`)
     const validState = await validateOAuthState(state)
-    if (!validState) return res.status(403).json({ error: 'Invalid state' })
+    if (!validState) return res.redirect(`${appUrl}/?error=invalid_state`)
     const redirectUri = `${appUrl}/api/auth?action=meta-callback`
     try {
       const shortToken = await exchangeCode(code, redirectUri)
@@ -60,6 +62,7 @@ export default async function handler(req, res) {
 
   // --- GET /api/auth?action=tiktok-init ---
   if (action === 'tiktok-init') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
     const state = crypto.randomBytes(32).toString('hex')
     await setOAuthState(state)
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`
@@ -73,9 +76,9 @@ export default async function handler(req, res) {
     const { code, state, error: authError } = req.query
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`
     if (authError) return res.redirect(`${appUrl}/?error=tiktok_denied`)
-    if (!code || !state) return res.status(400).json({ error: 'Missing code or state' })
+    if (!code || !state) return res.redirect(`${appUrl}/?error=missing_params`)
     const validState = await validateOAuthState(state)
-    if (!validState) return res.status(403).json({ error: 'Invalid state' })
+    if (!validState) return res.redirect(`${appUrl}/?error=invalid_state`)
     const redirectUri = `${appUrl}/api/auth?action=tiktok-callback`
     try {
       const tokenRes = await fetch('https://open.tiktokapis.com/v2/oauth/token/', {

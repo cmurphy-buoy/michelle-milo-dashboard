@@ -16,15 +16,13 @@ export default function Overview({ dateRange }) {
     const revenue = getData(KEYS.REVENUE + 'monthly') || []
     const deals = getData(KEYS.REVENUE + 'deals') || []
 
-    const cutoff = dateRange > 0 ? followers.length - dateRange : 0
-    const filteredFollowers = followers.slice(Math.max(0, cutoff))
+    const ago = dateRange > 0 ? new Date() : null
+    if (ago) ago.setDate(ago.getDate() - dateRange)
+    const filteredFollowers = dateRange > 0
+      ? followers.filter((f) => new Date(f.date) >= ago)
+      : followers
     const filteredReels = dateRange > 0
-      ? reels.filter((r) => {
-          const d = new Date(r.date)
-          const ago = new Date()
-          ago.setDate(ago.getDate() - dateRange)
-          return d >= ago
-        })
+      ? reels.filter((r) => new Date(r.date) >= ago)
       : reels
 
     return { followers: filteredFollowers, allFollowers: followers, reels: filteredReels, allReels: reels, revenue, deals }

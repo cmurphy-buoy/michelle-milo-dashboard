@@ -43,7 +43,17 @@ export default async function handler(req, res) {
       }
 
       const today = new Date().toISOString().slice(0, 10)
-      followers.push({ date: today, instagram: igUser.followers_count || 0, tiktok: 0, facebook: 0 })
+      const igFollowers = [{ date: today, instagram: igUser.followers_count || 0, tiktok: 0, facebook: 0 }]
+
+      // Fetch 30-day historical follower data (matches sync/all.js logic)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      const followerHistory = await getFollowerInsights(meta.igUserId, meta.accessToken, 'day', thirtyDaysAgo)
+      followerHistory.forEach((entry) => {
+        if (entry.end_time) igFollowers.push({ date: entry.end_time.slice(0, 10), instagram: entry.value || 0, tiktok: 0, facebook: 0 })
+      })
+
+      followers = mergeFollowers(followers, igFollowers)
     } catch (err) {
       errors.push({ platform: 'instagram', error: err.message })
     }

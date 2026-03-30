@@ -56,7 +56,7 @@ export default function TikTok({ dateRange }) {
       tiktokReels = tiktokReels.filter((r) => new Date(r.date) >= cutoff)
     }
 
-    return { tiktokReels, followers, trends, allReels }
+    return { tiktokReels, followers, trends }
   }, [dateRange])
 
   // -------------------------------------------------------------------------

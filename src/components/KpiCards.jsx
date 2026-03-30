@@ -6,38 +6,65 @@ function TrendArrow({ value }) {
   return <span className="text-gray-400 text-sm">— 0%</span>
 }
 
+function filterByWeek(arr, weeksAgo = 0) {
+  const now = new Date()
+  const start = new Date(now)
+  start.setDate(now.getDate() - 7 * (weeksAgo + 1))
+  const end = new Date(now)
+  end.setDate(now.getDate() - 7 * weeksAgo)
+  return arr.filter((r) => {
+    const d = new Date(r.date)
+    return d >= start && d < end
+  })
+}
+
 export default function KpiCards({ data }) {
   const kpis = useMemo(() => {
     const { followers, reels, revenue } = data
 
+    if (!followers.length && !reels.length) {
+      return [
+        { label: 'Total Combined Followers', value: 'N/A', change: 0, color: 'border-orange-400' },
+        { label: 'Avg Views / Reel', value: 'N/A', change: 0, color: 'border-purple-400' },
+        { label: 'Engagement Rate', value: 'N/A', change: 0, color: 'border-pink-400' },
+        { label: 'Monthly Revenue', value: '$0', change: 0, color: 'border-green-400' },
+        { label: 'Growth Rate', value: 'N/A', change: 0, color: 'border-teal-400' },
+      ]
+    }
+
     // Combined followers
     const latest = followers[followers.length - 1]
-    const weekAgo = followers[Math.max(0, followers.length - 8)]
+    const weekAgoEntry = [...followers].reverse().find((f) => {
+      const d = new Date(f.date)
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - 7)
+      return d <= cutoff
+    })
     const combined = latest?.combined || 0
-    const combinedChange = weekAgo?.combined
-      ? ((combined - weekAgo.combined) / weekAgo.combined) * 100
+    const combinedChange = weekAgoEntry?.combined
+      ? ((combined - weekAgoEntry.combined) / weekAgoEntry.combined) * 100
       : 0
 
-    // Avg views per reel
+    // Avg views per reel — date-based week comparison
     const totalViews = reels.reduce((s, r) => s + r.views, 0)
     const avgViews = reels.length ? Math.round(totalViews / reels.length) : 0
-    const recentReels = reels.slice(-7)
-    const olderReels = reels.slice(-14, -7)
-    const recentAvg = recentReels.length ? recentReels.reduce((s, r) => s + r.views, 0) / recentReels.length : 0
-    const olderAvg = olderReels.length ? olderReels.reduce((s, r) => s + r.views, 0) / olderReels.length : 0
+    const thisWeekReels = filterByWeek(reels, 0)
+    const lastWeekReels = filterByWeek(reels, 1)
+    const recentAvg = thisWeekReels.length ? thisWeekReels.reduce((s, r) => s + r.views, 0) / thisWeekReels.length : 0
+    const olderAvg = lastWeekReels.length ? lastWeekReels.reduce((s, r) => s + r.views, 0) / lastWeekReels.length : 0
     const viewsChange = olderAvg ? ((recentAvg - olderAvg) / olderAvg) * 100 : 0
 
     // Engagement rate
     const totalEngagement = reels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0)
     const totalReach = reels.reduce((s, r) => s + r.reach, 0)
     const engRate = totalReach ? (totalEngagement / totalReach) * 100 : 0
-    const recentEng = recentReels.length
-      ? (recentReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0) /
-         Math.max(1, recentReels.reduce((s, r) => s + r.reach, 0))) * 100
+    const recentEng = thisWeekReels.length
+      ? (thisWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0) /
+         Math.max(1, thisWeekReels.reduce((s, r) => s + r.reach, 0))) * 100
       : 0
-    const olderEng = olderReels.length
-      ? (olderReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0) /
-         Math.max(1, olderReels.reduce((s, r) => s + r.reach, 0))) * 100
+    const olderEng = lastWeekReels.length
+      ? (lastWeekReels.reduce((s, r) => s + r.likes + r.comments + r.shares + r.saves, 0) /
+         Math.max(1, lastWeekReels.reduce((s, r) => s + r.reach, 0))) * 100
       : 0
     const engChange = olderEng ? ((recentEng - olderEng) / olderEng) * 100 : 0
 
@@ -50,14 +77,17 @@ export default function KpiCards({ data }) {
     // Growth rate (follower % change over the period)
     const first = followers[0]
     const growthRate = first?.combined ? ((combined - first.combined) / first.combined) * 100 : 0
-    const midpoint = followers[Math.floor(followers.length / 2)]
-    const firstHalfGrowth = midpoint?.combined && first?.combined
-      ? ((midpoint.combined - first.combined) / first.combined) * 100
-      : 0
-    const secondHalfGrowth = midpoint?.combined
-      ? ((combined - midpoint.combined) / midpoint.combined) * 100
-      : 0
-    const growthTrend = secondHalfGrowth - firstHalfGrowth
+    let growthTrend = 0
+    if (followers.length >= 4) {
+      const midpoint = followers[Math.floor(followers.length / 2)]
+      const firstHalfGrowth = midpoint?.combined && first?.combined
+        ? ((midpoint.combined - first.combined) / first.combined) * 100
+        : 0
+      const secondHalfGrowth = midpoint?.combined
+        ? ((combined - midpoint.combined) / midpoint.combined) * 100
+        : 0
+      growthTrend = secondHalfGrowth - firstHalfGrowth
+    }
 
     return [
       { label: 'Total Combined Followers', value: combined.toLocaleString(), change: combinedChange, color: 'border-orange-400' },

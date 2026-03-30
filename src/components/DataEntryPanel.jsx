@@ -41,7 +41,7 @@ function ReelForm({ onDone }) {
   }
 
   const fields = [
-    { key: 'title', label: 'Reel Title', type: 'text', full: true },
+    { key: 'title', label: 'Reel Title', type: 'text' },
     { key: 'platform', label: 'Platform', type: 'select', options: PLATFORMS },
     { key: 'date', label: 'Date', type: 'date' },
     { key: 'category', label: 'Category', type: 'select', options: CATEGORIES },
@@ -59,7 +59,7 @@ function ReelForm({ onDone }) {
   return (
     <div className="space-y-3">
       {fields.map((f) => (
-        <label key={f.key} className={f.full ? 'block' : 'block'}>
+        <label key={f.key} className="block">
           <span className="text-xs text-gray-500">{f.label}</span>
           {f.type === 'select' ? (
             <select value={form[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} className="w-full mt-1 px-3 py-2 border rounded-lg text-sm">
@@ -207,7 +207,7 @@ function CsvImport({ onDone }) {
             {requiredCols.map((col) => (
               <div key={col} className="flex items-center gap-2">
                 <span className="text-xs text-gray-500 w-24 capitalize">{col}</span>
-                <select value={mapping[col] ?? ''} onChange={(e) => setMapping({ ...mapping, [col]: Number(e.target.value) })} className="flex-1 px-2 py-1 border rounded text-xs">
+                <select value={mapping[col] ?? ''} onChange={(e) => setMapping({ ...mapping, [col]: e.target.value === '' ? undefined : Number(e.target.value) })} className="flex-1 px-2 py-1 border rounded text-xs">
                   <option value="">-- Select --</option>
                   {headers.map((h, i) => <option key={i} value={i}>{h}</option>)}
                 </select>

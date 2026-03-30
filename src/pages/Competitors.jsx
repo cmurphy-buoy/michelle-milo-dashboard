@@ -111,10 +111,10 @@ function CompetitorForm({ accounts, onAdd, onDelete }) {
             <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
           ))}
         </select>
-        <input placeholder="Follower Count" type="number" value={form.followers} onChange={change('followers')} className={inputCls} />
-        <input placeholder="Avg Views/Reel" type="number" value={form.avgViews} onChange={change('avgViews')} className={inputCls} />
-        <input placeholder="Engagement Rate %" type="number" step="0.01" value={form.engagementRate} onChange={change('engagementRate')} className={inputCls} />
-        <input placeholder="Posts/Week" type="number" value={form.postsPerWeek} onChange={change('postsPerWeek')} className={inputCls} />
+        <input placeholder="Follower Count" type="number" min="0" value={form.followers} onChange={change('followers')} className={inputCls} />
+        <input placeholder="Avg Views/Reel" type="number" min="0" value={form.avgViews} onChange={change('avgViews')} className={inputCls} />
+        <input placeholder="Engagement Rate %" type="number" min="0" step="0.01" value={form.engagementRate} onChange={change('engagementRate')} className={inputCls} />
+        <input placeholder="Posts/Week" type="number" min="0" value={form.postsPerWeek} onChange={change('postsPerWeek')} className={inputCls} />
         <button
           type="submit"
           className="rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition disabled:opacity-50"
@@ -134,7 +134,6 @@ function CompetitorForm({ accounts, onAdd, onDelete }) {
                 <th className="py-2 pr-3 font-medium">Name</th>
                 <th className="py-2 pr-3 font-medium">Handle</th>
                 <th className="py-2 pr-3 font-medium">Platform</th>
-                <th className="py-2 pr-3 font-medium">Bio</th>
                 <th className="py-2 font-medium"></th>
               </tr>
             </thead>
@@ -144,7 +143,6 @@ function CompetitorForm({ accounts, onAdd, onDelete }) {
                   <td className="py-2 pr-3 font-medium text-amber-900">{a.name}</td>
                   <td className="py-2 pr-3 text-gray-600">{a.handle}</td>
                   <td className="py-2 pr-3 capitalize text-gray-600">{a.platform}</td>
-                  <td className="py-2 pr-3 text-gray-500 truncate max-w-[200px]">{a.bio || '--'}</td>
                   <td className="py-2">
                     <button
                       onClick={() => onDelete(a.id)}
@@ -583,7 +581,7 @@ export default function Competitors({ dateRange }) {
   const [history, setHistory] = useState(() => getData(KEYS.COMPETITORS + 'history') || {})
   const [, setTick] = useState(0) // force re-render after mutations
 
-  const mmFollowers = useMemo(() => getData(KEYS.FOLLOWERS + 'daily') || [], [])
+  const mmFollowers = useMemo(() => getData(KEYS.FOLLOWERS + 'daily') || [], [dateRange])
 
   const latestMM = useMemo(() => {
     if (mmFollowers.length === 0) return null
@@ -601,44 +599,55 @@ export default function Competitors({ dateRange }) {
         platform: formData.platform,
         bio: '',
       }
-      const updated = [...accounts, newAccount]
-      setAccounts(updated)
-      saveData(KEYS.COMPETITORS + 'accounts', updated)
+
+      setAccounts((prev) => {
+        const updated = [...prev, newAccount]
+        saveData(KEYS.COMPETITORS + 'accounts', updated)
+        return updated
+      })
 
       // Seed a single history entry from form data so charts work immediately
       const today = new Date().toISOString().slice(0, 10)
-      const newHistory = {
-        ...history,
-        [newId]: [
-          {
-            date: today,
-            followers: formData.followers,
-            avgViews: formData.avgViews,
-            engagementRate: formData.engagementRate,
-            postsThisWeek: formData.postsPerWeek,
-          },
-        ],
-      }
-      setHistory(newHistory)
-      saveData(KEYS.COMPETITORS + 'history', newHistory)
+      setHistory((prev) => {
+        const newHistory = {
+          ...prev,
+          [newId]: [
+            {
+              date: today,
+              followers: formData.followers,
+              avgViews: formData.avgViews,
+              engagementRate: formData.engagementRate,
+              postsThisWeek: formData.postsPerWeek,
+            },
+          ],
+        }
+        saveData(KEYS.COMPETITORS + 'history', newHistory)
+        return newHistory
+      })
       setTick((t) => t + 1)
     },
-    [accounts, history],
+    [],
   )
 
   const handleDelete = useCallback(
     (id) => {
-      const updated = accounts.filter((a) => a.id !== id)
-      setAccounts(updated)
-      saveData(KEYS.COMPETITORS + 'accounts', updated)
+      if (!window.confirm('Are you sure you want to delete this competitor?')) return
 
-      const newHistory = { ...history }
-      delete newHistory[id]
-      setHistory(newHistory)
-      saveData(KEYS.COMPETITORS + 'history', newHistory)
+      setAccounts((prev) => {
+        const updated = prev.filter((a) => a.id !== id)
+        saveData(KEYS.COMPETITORS + 'accounts', updated)
+        return updated
+      })
+
+      setHistory((prev) => {
+        const newHistory = { ...prev }
+        delete newHistory[id]
+        saveData(KEYS.COMPETITORS + 'history', newHistory)
+        return newHistory
+      })
       setTick((t) => t + 1)
     },
-    [accounts, history],
+    [],
   )
 
   // ----- render -----

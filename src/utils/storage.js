@@ -12,6 +12,7 @@ export const KEYS = {
   HASHTAGS: 'mm:hashtags:',
   TRENDS: 'mm:trends:',
   TEMPLATES: 'mm:templates:',
+  SYNC: 'mm:sync:',
 }
 
 // ---------------------------------------------------------------------------

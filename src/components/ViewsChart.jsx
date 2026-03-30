@@ -23,7 +23,7 @@ export default function ViewsChart({ reels }) {
       <ResponsiveContainer width="100%" height={280}>
         <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-          <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={60} />
+          <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={70} interval={chartData.length > 15 ? Math.floor(chartData.length / 10) : 0} />
           <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => (v / 1000).toFixed(0) + 'K'} />
           <Tooltip formatter={(v) => v.toLocaleString()} />
           <ReferenceLine y={avgViews} stroke="#F97316" strokeDasharray="4 4" label={{ value: `Avg: ${(avgViews / 1000).toFixed(0)}K`, position: 'right', fontSize: 11 }} />

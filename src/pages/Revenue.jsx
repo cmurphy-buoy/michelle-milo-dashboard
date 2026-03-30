@@ -32,12 +32,16 @@ const PLATFORM_COLORS = {
 const PIE_COLORS = ['#22c55e', '#eab308', '#f97316', '#06b6d4']
 
 const EMPTY_FORM = {
-  date: new Date().toISOString().slice(0, 10),
+  date: '',
   platform: 'instagram',
   reelId: '',
   amount: '',
   type: 'Sponsorship',
   brand: '',
+}
+
+function freshForm() {
+  return { ...EMPTY_FORM, date: new Date().toISOString().slice(0, 10) }
 }
 
 // ---------------------------------------------------------------------------
@@ -63,6 +67,14 @@ function trendArrow(current, previous) {
   return { arrow: '--', color: 'text-gray-400', pct: 0 }
 }
 
+function filterByDateRange(arr, dateRange) {
+  if (!arr || arr.length === 0) return []
+  if (!dateRange || dateRange <= 0) return arr
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - dateRange)
+  return arr.filter((d) => new Date(d.date) >= cutoff)
+}
+
 function currentMonth() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
@@ -79,7 +91,7 @@ function previousMonth() {
 // ---------------------------------------------------------------------------
 
 export default function Revenue({ dateRange }) {
-  const [form, setForm] = useState({ ...EMPTY_FORM })
+  const [form, setForm] = useState(() => freshForm())
   const [refreshKey, setRefreshKey] = useState(0)
 
   // ---- Load data (re-reads on refreshKey change) ----
@@ -87,6 +99,9 @@ export default function Revenue({ dateRange }) {
   const monthly = useMemo(() => getData(KEYS.REVENUE + 'monthly') || [], [refreshKey])
   const reels = useMemo(() => getData(KEYS.REELS + 'all') || [], [refreshKey])
   const followers = useMemo(() => getData(KEYS.FOLLOWERS + 'daily') || [], [refreshKey])
+
+  // ---- Filter deals by dateRange ----
+  const filteredDeals = useMemo(() => filterByDateRange(deals, dateRange), [deals, dateRange])
 
   // ---- Derived data ----
   const curMonth = currentMonth()
@@ -122,8 +137,8 @@ export default function Revenue({ dateRange }) {
   const prevCpm = prevSponsoredViews > 0 ? (prevMonthRevenue / prevSponsoredViews) * 1000 : 0
 
   // Estimated account value: followers * $0.05 + monthly revenue * 12
-  const latestFollowers = followers.length > 0 ? followers[followers.length - 1].combined : 0
-  const prevFollowers = followers.length > 1 ? followers[followers.length - 2].combined : 0
+  const latestFollowers = followers.length > 0 ? (followers[followers.length - 1].combined || 0) : 0
+  const prevFollowers = followers.length > 1 ? (followers[followers.length - 2].combined || 0) : 0
   const accountValue = latestFollowers * 0.05 + curMonthRevenue * 12
   const prevAccountValue = prevFollowers * 0.05 + prevMonthRevenue * 12
 
@@ -159,16 +174,16 @@ export default function Revenue({ dateRange }) {
   const revenueByType = useMemo(() => {
     const map = {}
     DEAL_TYPES.forEach((t) => { map[t] = 0 })
-    deals.forEach((d) => {
+    filteredDeals.forEach((d) => {
       const label = DEAL_TYPES.includes(d.type) ? d.type : 'Sponsorship'
       map[label] = (map[label] || 0) + (d.amount || 0)
     })
     return DEAL_TYPES.map((t) => ({ name: t, value: map[t] })).filter((e) => e.value > 0)
-  }, [deals])
+  }, [filteredDeals])
 
   // ---- Chart data: Scatter (views vs revenue) ----
   const scatterData = useMemo(() => {
-    return deals.map((d) => {
+    return filteredDeals.map((d) => {
       const reel = reelsMap[d.reelId]
       return {
         views: reel ? reel.views : 0,
@@ -176,7 +191,7 @@ export default function Revenue({ dateRange }) {
         brand: d.brand,
       }
     }).filter((d) => d.views > 0)
-  }, [deals, reelsMap])
+  }, [filteredDeals, reelsMap])
 
   // ---- Chart data: monthly stacked bar ----
   const monthlyChartData = useMemo(() => {
@@ -190,10 +205,19 @@ export default function Revenue({ dateRange }) {
 
   // ---- Sorted deals for table ----
   const sortedDeals = useMemo(() => {
-    return [...deals].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
-  }, [deals])
+    return [...filteredDeals].sort((a, b) => (b.date || '').localeCompare(a.date || ''))
+  }, [filteredDeals])
 
-  const runningTotal = deals.reduce((s, d) => s + (d.amount || 0), 0)
+  const runningTotal = filteredDeals.reduce((s, d) => s + (d.amount || 0), 0)
+
+  // ---- Delete handler ----
+  function handleDeleteDeal(dealId) {
+    if (!window.confirm('Are you sure you want to delete this deal?')) return
+    const existing = getData(KEYS.REVENUE + 'deals') || []
+    const updated = existing.filter((d) => d.id !== dealId)
+    saveData(KEYS.REVENUE + 'deals', updated)
+    setRefreshKey((k) => k + 1)
+  }
 
   // ---- Form handlers ----
   function handleChange(e) {
@@ -203,6 +227,7 @@ export default function Revenue({ dateRange }) {
   function handleSubmit(e) {
     e.preventDefault()
     if (!form.brand.trim() || !form.amount) return
+    if (parseFloat(form.amount) <= 0) return
 
     const newDeal = {
       id: 'deal-' + Date.now(),
@@ -218,7 +243,7 @@ export default function Revenue({ dateRange }) {
     existing.push(newDeal)
     saveData(KEYS.REVENUE + 'deals', existing)
 
-    setForm({ ...EMPTY_FORM })
+    setForm(freshForm())
     setRefreshKey((k) => k + 1)
   }
 
@@ -457,6 +482,7 @@ export default function Revenue({ dateRange }) {
                 <th className="px-6 py-3">Type</th>
                 <th className="px-6 py-3">Reel</th>
                 <th className="px-6 py-3 text-right">Amount</th>
+                <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -477,13 +503,22 @@ export default function Revenue({ dateRange }) {
                       {reel ? reel.title : deal.reelId || '--'}
                     </td>
                     <td className="px-6 py-3 text-right font-semibold text-green-600">{fmt(deal.amount)}</td>
+                    <td className="px-6 py-3 text-center">
+                      <button
+                        onClick={() => handleDeleteDeal(deal.id)}
+                        className="text-red-400 hover:text-red-600 text-sm font-bold leading-none"
+                        title="Delete deal"
+                      >
+                        &times;
+                      </button>
+                    </td>
                   </tr>
                 )
               })}
 
               {/* Running total row */}
               <tr className="bg-green-50 font-bold">
-                <td className="px-6 py-3" colSpan={5}>
+                <td className="px-6 py-3" colSpan={6}>
                   <span className="text-gray-700">Total ({sortedDeals.length} deals)</span>
                 </td>
                 <td className="px-6 py-3 text-right text-green-700 text-base">{fmt(runningTotal)}</td>
