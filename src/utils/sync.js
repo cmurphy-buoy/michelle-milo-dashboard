@@ -28,13 +28,19 @@ export async function checkConnectionStatus() {
 export async function initiateOAuth(platform) {
   try {
     const res = await fetch(`/api/auth?action=${platform}-init`)
-    if (!res.ok) return null
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}))
+      return { error: errData.error || `Server returned ${res.status}. Make sure environment variables (META_APP_ID, UPSTASH_REDIS_REST_URL, etc.) are set in Vercel.` }
+    }
     const data = await res.json()
-    if (data?.authUrl) window.location.href = data.authUrl
-    return data
+    if (data?.authUrl) {
+      window.location.href = data.authUrl
+      return data
+    }
+    return { error: 'No auth URL returned. Check that META_APP_ID is set in Vercel environment variables.' }
   } catch (err) {
     console.error(`Failed to initiate OAuth for ${platform}:`, err)
-    return null
+    return { error: 'Could not reach the server. Make sure environment variables are configured in Vercel and the app has been redeployed.' }
   }
 }
 

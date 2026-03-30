@@ -24,6 +24,12 @@ export default async function handler(req, res) {
   // --- GET /api/auth?action=meta-init ---
   if (action === 'meta-init') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    if (!process.env.META_APP_ID || !process.env.META_APP_SECRET) {
+      return res.status(500).json({ error: 'META_APP_ID and META_APP_SECRET environment variables are not configured. Add them in Vercel Dashboard → Settings → Environment Variables, then redeploy.' })
+    }
+    if (!process.env.UPSTASH_REDIS_REST_URL) {
+      return res.status(500).json({ error: 'UPSTASH_REDIS_REST_URL is not configured. Create a free Redis database at upstash.com and add the credentials to Vercel environment variables.' })
+    }
     const state = crypto.randomBytes(32).toString('hex')
     await setOAuthState(state)
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`
@@ -63,6 +69,12 @@ export default async function handler(req, res) {
   // --- GET /api/auth?action=tiktok-init ---
   if (action === 'tiktok-init') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    if (!process.env.TIKTOK_CLIENT_KEY || !process.env.TIKTOK_CLIENT_SECRET) {
+      return res.status(500).json({ error: 'TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET environment variables are not configured. Add them in Vercel Dashboard → Settings → Environment Variables, then redeploy.' })
+    }
+    if (!process.env.UPSTASH_REDIS_REST_URL) {
+      return res.status(500).json({ error: 'UPSTASH_REDIS_REST_URL is not configured. Create a free Redis database at upstash.com and add the credentials to Vercel environment variables.' })
+    }
     const state = crypto.randomBytes(32).toString('hex')
     await setOAuthState(state)
     const appUrl = process.env.APP_URL || `https://${req.headers.host}`

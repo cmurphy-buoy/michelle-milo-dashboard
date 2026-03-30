@@ -342,8 +342,11 @@ export default function Settings() {
   // Handlers
   // -----------------------------------------------------------------------
 
-  function handleConnect(oauthKey) {
-    initiateOAuth(oauthKey)
+  async function handleConnect(oauthKey) {
+    const result = await initiateOAuth(oauthKey)
+    if (result?.error) {
+      setToast({ type: 'error', message: result.error })
+    }
   }
 
   async function handleDisconnect(oauthKey) {
